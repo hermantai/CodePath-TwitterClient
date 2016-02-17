@@ -1,6 +1,7 @@
 package com.codepath.apps.mysimpletweets.timeline;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -46,22 +47,37 @@ public class TimelineActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timeline);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         ButterKnife.bind(this);
 
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        toolbar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //layoutManager.scrollToPositionWithOffset(0, 0);
+                rvTweets.smoothScrollToPosition(0);
+            }
+        });
+        
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                        .setAction("Action", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                //
+                            }
+                        }).show();
             }
         });
 
         mTweetsAdapter = new TweetsAdapter();
         rvTweets.setAdapter(mTweetsAdapter);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         rvTweets.setLayoutManager(layoutManager);
 
@@ -85,7 +101,7 @@ public class TimelineActivity extends AppCompatActivity {
      * @param since_id The ID of the oldest tweets to retrieve, exclusive. Use 0 if getting the
      *                 newest tweets.
      */
-    private void fetchNewerTweets(long since_id) {
+    private void fetchNewerTweets(final long since_id) {
         mClient.getHomeTimeline(
                 25,
                 since_id,
@@ -119,9 +135,13 @@ public class TimelineActivity extends AppCompatActivity {
                                     rvTweets,
                                     "Network error!",
                                     Snackbar.LENGTH_INDEFINITE)
-                                    .setAction("Action", null)
-                                    .setActionTextColor(
-                                            getResources().getColor(android.R.color.white))
+                                    .setAction("Reload", new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            fetchNewerTweets(since_id);
+                                        }
+                                    })
+                                    .setActionTextColor(Color.WHITE)
                                     .show();
                         }
                     }
@@ -134,7 +154,7 @@ public class TimelineActivity extends AppCompatActivity {
      *
      * @param max_id The ID of the newest tweets to retrieve, exclusive.
      */
-    private void fetchOlderTweets(long max_id) {
+    private void fetchOlderTweets(final long max_id) {
         mClient.getHomeTimeline(
                 25,
                 0,
@@ -161,6 +181,21 @@ public class TimelineActivity extends AppCompatActivity {
                                 Common.INFO_TAG,
                                 "Error retrieving tweets: " + throwable.getLocalizedMessage(),
                                 throwable);
+                        if (!NetworkUtil.isNetworkAvailable(TimelineActivity.this)
+                                || throwable instanceof UnknownHostException) {
+                            Snackbar.make(
+                                    rvTweets,
+                                    "Network error!",
+                                    Snackbar.LENGTH_INDEFINITE)
+                                    .setAction("Reload", new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            fetchOlderTweets(max_id);
+                                        }
+                                    })
+                                    .setActionTextColor(Color.WHITE)
+                                    .show();
+                        }
                     }
                 });
     }
