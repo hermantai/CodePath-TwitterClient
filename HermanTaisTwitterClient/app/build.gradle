@@ -33,4 +33,11 @@ dependencies {
     compile 'com.loopj.android:android-async-http:1.4.8'
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
     compile 'com.android.support:design:23.1.1'
+
+    compile 'com.jakewharton:butterknife:7.0.1'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    compile 'com.google.code.gson:gson:2.5'
+
+    // unescape html
+    compile 'org.apache.commons:commons-lang3:3.1'
 }
