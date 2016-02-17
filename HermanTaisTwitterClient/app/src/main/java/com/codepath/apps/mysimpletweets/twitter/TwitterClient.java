@@ -51,17 +51,36 @@ public class TwitterClient extends OAuthBaseClient {
 	 *    i.e client.post(apiUrl, params, handler);
 	 */
 
-    // HomeTimeline - Gets us the home timeline
-    // Get statuses/home_timeline.json
-    //    count=25
-    //    since_id=1 (every single tweet sorted by the most recent)
-    public void getHomeTimeline(AsyncHttpResponseHandler handler) {
+    /**
+     * HomeTimeline - Gets us the home timeline
+     * Get statuses/home_timeline.json
+     * The json lists the tweets in timestamp descending order.
+     *
+     * @param count
+     * @param since_id The ID of the oldest tweet to retrieve, exclusive. Use 0 if just want to get
+     *                 the newest tweets.
+     * @param max_id The ID of the newest tweet to retrieve, exclusive. Use 0 if not setting a
+     *               limit.
+     * @param handler
+     */
+    public void getHomeTimeline(
+            int count,
+            long since_id,
+            long max_id,
+            AsyncHttpResponseHandler handler) {
         String apiUrl = getApiUrl("statuses/home_timeline.json");
 
         // Specify the params
         RequestParams params = new RequestParams();
-        params.put("count", 25);
-        params.put("since_id", 1);
+        params.put("count", count);
+        if (since_id != 0) {
+            params.put("since_id", since_id);
+        }
+        if (max_id != 0) {
+            // The max_id in the API is actually inclusive, so we adjust it here to make our API
+            // cleaner.
+            params.put("max_id", max_id - 1);
+        }
 
         getClient().get(apiUrl, params, handler);
     }

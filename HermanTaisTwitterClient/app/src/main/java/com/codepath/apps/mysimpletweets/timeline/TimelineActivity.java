@@ -17,6 +17,7 @@ import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.helpers.LogUtil;
+import com.codepath.apps.mysimpletweets.helpers.NetworkUtil;
 import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.twitter.TwitterApplication;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
@@ -27,6 +28,7 @@ import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,39 +65,104 @@ public class TimelineActivity extends AppCompatActivity {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         rvTweets.setLayoutManager(layoutManager);
 
+        rvTweets.addOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
+            @Override
+            protected void onLoadMore(int page, int totalItemsCount) {
+                int last = mTweetsAdapter.getItemCount() - 1;
+                if (last >= 0) {
+                    fetchOlderTweets(mTweetsAdapter.getItem(last).getUid());
+                }
+            }
+        });
+
         mClient = TwitterApplication.getRestClient();
-        populateTimeline();
+        fetchNewerTweets(0);
     }
 
     /**
-     * Send an API request to get the timeline json
-     * Fill the listview by creating the tweet objects from the json
+     * Send an API request to get new tweets from the timeline json
+     * Fill the list by creating the tweet objects from the json
+     * @param since_id The ID of the oldest tweets to retrieve, exclusive. Use 0 if getting the
+     *                 newest tweets.
      */
-    private void populateTimeline() {
-        mClient.getHomeTimeline(new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                LogUtil.d(Common.INFO_TAG, response.toString());
+    private void fetchNewerTweets(long since_id) {
+        mClient.getHomeTimeline(
+                25,
+                since_id,
+                0,
+                new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                        LogUtil.d(Common.INFO_TAG, response.toString());
 
-                // Deserialize JSON
-                // Create models
-                // Load the model data into ListView
-                mTweetsAdapter.addAll(Tweet.fromJsonArray(response));
-            }
+                        // Deserialize JSON
+                        // Create models
+                        // Load the model data into ListView
+                        mTweetsAdapter.addAllToFront(Tweet.fromJsonArray(response));
+                        // TODO: handle gaps on the timeline created from this
+                    }
 
-            @Override
-            public void onFailure(
-                    int statusCode,
-                    Header[] headers,
-                    Throwable throwable,
-                    JSONObject errorResponse) {
-                ErrorHandling.handleError(
-                        TimelineActivity.this,
-                        Common.INFO_TAG,
-                        "Error retrieving tweets: " + throwable.getLocalizedMessage(),
-                        throwable);
-            }
-        });
+                    @Override
+                    public void onFailure(
+                            int statusCode,
+                            Header[] headers,
+                            Throwable throwable,
+                            JSONObject errorResponse) {
+                        ErrorHandling.handleError(
+                                TimelineActivity.this,
+                                Common.INFO_TAG,
+                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                throwable);
+                        if (!NetworkUtil.isNetworkAvailable(TimelineActivity.this)
+                                || throwable instanceof UnknownHostException) {
+                            Snackbar.make(
+                                    rvTweets,
+                                    "Network error!",
+                                    Snackbar.LENGTH_INDEFINITE)
+                                    .setAction("Action", null)
+                                    .setActionTextColor(
+                                            getResources().getColor(android.R.color.white))
+                                    .show();
+                        }
+                    }
+                });
+    }
+
+    /**
+     * Send an API request to get old tweets from the timeline json
+     * Fill the list by creating the tweet objects from the json
+     *
+     * @param max_id The ID of the newest tweets to retrieve, exclusive.
+     */
+    private void fetchOlderTweets(long max_id) {
+        mClient.getHomeTimeline(
+                25,
+                0,
+                max_id,
+                new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                        LogUtil.d(Common.INFO_TAG, response.toString());
+
+                        // Deserialize JSON
+                        // Create models
+                        // Load the model data into ListView
+                        mTweetsAdapter.addAll(Tweet.fromJsonArray(response));
+                    }
+
+                    @Override
+                    public void onFailure(
+                            int statusCode,
+                            Header[] headers,
+                            Throwable throwable,
+                            JSONObject errorResponse) {
+                        ErrorHandling.handleError(
+                                TimelineActivity.this,
+                                Common.INFO_TAG,
+                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                throwable);
+                    }
+                });
     }
 
     class TweetViewHolder extends RecyclerView.ViewHolder {
@@ -141,10 +208,21 @@ public class TimelineActivity extends AppCompatActivity {
             return mTweets.size();
         }
 
-        private void addAll(List<Tweet> tweets) {
+        public void addAll(List<Tweet> tweets) {
             int oldLen = mTweets.size();
             mTweets.addAll(tweets);
             notifyItemRangeInserted(oldLen, tweets.size());
+        }
+
+        public void addAllToFront(ArrayList<Tweet> tweets) {
+            List<Tweet> newTweets = new ArrayList<>(tweets);
+            newTweets.addAll(mTweets);
+            mTweets = newTweets;
+            notifyDataSetChanged();
+        }
+
+        public Tweet getItem(int position) {
+            return mTweets.get(position);
         }
     }
 }

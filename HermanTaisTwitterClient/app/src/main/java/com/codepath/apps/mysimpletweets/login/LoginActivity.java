@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 
+import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
+import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.timeline.TimelineActivity;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.codepath.oauth.OAuthLoginActionBarActivity;
@@ -41,8 +43,13 @@ public class LoginActivity extends OAuthLoginActionBarActivity<TwitterClient> {
 	// i.e Display an error dialog or toast
 	@Override
 	public void onLoginFailure(Exception e) {
-		e.printStackTrace();
+        ErrorHandling.handleError(
+                this,
+                Common.INFO_TAG,
+                "Failed to login: " + e.getLocalizedMessage(),
+                e);
 	}
+
 
 	// Click handler method for the button used to start OAuth flow
 	// Uses the client to initiate OAuth authorization
