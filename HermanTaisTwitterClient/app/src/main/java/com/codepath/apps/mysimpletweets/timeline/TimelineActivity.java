@@ -8,16 +8,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
+import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
+import com.codepath.apps.mysimpletweets.helpers.LogUtil;
+import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.twitter.TwitterApplication;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
-import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.squareup.picasso.Picasso;
 
@@ -73,7 +75,7 @@ public class TimelineActivity extends AppCompatActivity {
         mClient.getHomeTimeline(new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                Log.d("DEBUG", response.toString());
+                LogUtil.d(Common.INFO_TAG, response.toString());
 
                 // Deserialize JSON
                 // Create models
@@ -87,7 +89,11 @@ public class TimelineActivity extends AppCompatActivity {
                     Header[] headers,
                     Throwable throwable,
                     JSONObject errorResponse) {
-                Log.d("DEBUG", errorResponse.toString());
+                ErrorHandling.handleError(
+                        TimelineActivity.this,
+                        Common.INFO_TAG,
+                        "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                        throwable);
             }
         });
     }
