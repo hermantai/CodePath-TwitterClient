@@ -5,10 +5,13 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -30,6 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,11 +41,18 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 
 public class TimelineActivity extends AppCompatActivity {
+    private static final SimpleDateFormat sDateFormat = new SimpleDateFormat(
+            "MMM dd HH:mm:ss Z yyyy");
+
     @Bind(R.id.rvTweets) RecyclerView rvTweets;
     @Bind(R.id.fab) FloatingActionButton mFab;
+    @Bind(R.id.swipeContainer) SwipeRefreshLayout mSwipeContainer;
 
     private TwitterClient mClient;
     private TweetsAdapter mTweetsAdapter;
+    private EndlessRecyclerViewScrollListener mEndlessRecyclerViewScrollListener;
+
+    private boolean mStartedLoadingMore = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +73,7 @@ public class TimelineActivity extends AppCompatActivity {
                 rvTweets.smoothScrollToPosition(0);
             }
         });
-        
+
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -81,15 +92,30 @@ public class TimelineActivity extends AppCompatActivity {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         rvTweets.setLayoutManager(layoutManager);
 
-        rvTweets.addOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
+        mEndlessRecyclerViewScrollListener = new EndlessRecyclerViewScrollListener(layoutManager) {
             @Override
             protected void onLoadMore(int page, int totalItemsCount) {
                 int last = mTweetsAdapter.getItemCount() - 1;
                 if (last >= 0) {
-                    fetchOlderTweets(mTweetsAdapter.getItem(last).getUid());
+                    long max_id = mTweetsAdapter.getItem(last).getId();
+                    Log.d(Common.INFO_TAG, "Fetch older tweets with max_id: " + max_id);
+                    mStartedLoadingMore = true;
+                    fetchOlderTweets(max_id);
                 }
             }
+        };
+        rvTweets.addOnScrollListener(mEndlessRecyclerViewScrollListener);
+
+        mSwipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                fetchNewerTweets(0);
+            }
         });
+        mSwipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
 
         mClient = TwitterApplication.getRestClient();
         fetchNewerTweets(0);
@@ -110,12 +136,39 @@ public class TimelineActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                         LogUtil.d(Common.INFO_TAG, response.toString());
+                        mSwipeContainer.setRefreshing(false);
 
                         // Deserialize JSON
                         // Create models
                         // Load the model data into ListView
-                        mTweetsAdapter.addAllToFront(Tweet.fromJsonArray(response));
+                        List<Tweet> newTweets = Tweet.fromJsonArray(response);
                         // TODO: handle gaps on the timeline created from this
+                        if (!newTweets.isEmpty()
+                                && mTweetsAdapter.getItemCount() != 0
+                                // The oldest new tweet is earlier than or equal to newest tweet
+                                // we have so far, in terms of uid of tweets
+                                && newTweets.get(newTweets.size() - 1).getId() >=
+                                        mTweetsAdapter.getItem(0).getId()) {
+                            // Overlapped with what we have
+                            long newestExistingId = mTweetsAdapter.getItem(0).getId();
+
+                            int oldestNewItemToBeInserted = newTweets.size() - 1;
+                            for (oldestNewItemToBeInserted -= 1;
+                                 oldestNewItemToBeInserted >= 0;
+                                 oldestNewItemToBeInserted--) {
+                                if (
+                                        newTweets.get(oldestNewItemToBeInserted)
+                                                .getId() > newestExistingId) {
+                                    break;
+                                }
+                            }
+                            if (oldestNewItemToBeInserted >= 0) {
+                                mTweetsAdapter.addAllToFront(
+                                        newTweets.subList(0, oldestNewItemToBeInserted + 1));
+                            }
+                        } else {
+                            mTweetsAdapter.addAllToFront(newTweets);
+                        }
                     }
 
                     @Override
@@ -124,6 +177,8 @@ public class TimelineActivity extends AppCompatActivity {
                             Header[] headers,
                             Throwable throwable,
                             JSONObject errorResponse) {
+                        mSwipeContainer.setRefreshing(false);
+
                         ErrorHandling.handleError(
                                 TimelineActivity.this,
                                 Common.INFO_TAG,
@@ -162,12 +217,22 @@ public class TimelineActivity extends AppCompatActivity {
                 new JsonHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+
                         LogUtil.d(Common.INFO_TAG, response.toString());
 
                         // Deserialize JSON
                         // Create models
                         // Load the model data into ListView
-                        mTweetsAdapter.addAll(Tweet.fromJsonArray(response));
+                        List<Tweet> newTweets = Tweet.fromJsonArray(response);
+                        mTweetsAdapter.addAll(newTweets);
+
+                        if (mStartedLoadingMore) {
+                            mStartedLoadingMore = false;
+                            if (newTweets.isEmpty()
+                                    && mEndlessRecyclerViewScrollListener != null) {
+                                mEndlessRecyclerViewScrollListener.notifyNoMoreItems();
+                            }
+                        }
                     }
 
                     @Override
@@ -176,6 +241,10 @@ public class TimelineActivity extends AppCompatActivity {
                             Header[] headers,
                             Throwable throwable,
                             JSONObject errorResponse) {
+                        if (mStartedLoadingMore && mEndlessRecyclerViewScrollListener != null) {
+                            mStartedLoadingMore = false;
+                            mEndlessRecyclerViewScrollListener.notifyLoadMoreFailed();
+                        }
                         ErrorHandling.handleError(
                                 TimelineActivity.this,
                                 Common.INFO_TAG,
@@ -201,28 +270,55 @@ public class TimelineActivity extends AppCompatActivity {
     }
 
     class TweetViewHolder extends RecyclerView.ViewHolder {
-        @Bind(R.id.ivProfileImage) ImageView mIvProfileImage;
-        @Bind(R.id.tvUserName) TextView mTvUserName;
-        @Bind(R.id.tvBody) TextView mTvBody;
+        @Bind(R.id.ivItemTweetProfileImage) ImageView mIvItemTweetProfileImage;
+        @Bind(R.id.tvItemTweetUserName) TextView mTvItemTweetUserName;
+        @Bind(R.id.tvItemTweetBody) TextView mTvItemTweetBody;
+        @Bind(R.id.tvItemTweetCreatedAt) TextView mTvItemTweetCreatedAt;
+
+        View.OnClickListener mTvItemTweetCreatedAtOnClickListener1 = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mTvItemTweetCreatedAt.setText(sDateFormat.format(mTweet.getCreatedAt()));
+                mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener2);
+            }
+        };
+
+        View.OnClickListener mTvItemTweetCreatedAtOnClickListener2 = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mTvItemTweetCreatedAt.setText(
+                        DateUtils.getRelativeTimeSpanString(mTweet.getCreatedAt().getTime()));
+                mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener1);
+            }
+        };
+
+        private Tweet mTweet;
 
         private TweetViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+
+            mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener1);
         }
 
         private void bindTweet(Context context, Tweet tweet) {
-            mTvUserName.setText(tweet.getUser().getScreenName());
-            mTvBody.setText(tweet.getBody());
+            mTweet = tweet;
 
-            mIvProfileImage.setImageResource(android.R.color.transparent);
+            mTvItemTweetUserName.setText(tweet.getUser().getScreenName());
+            mTvItemTweetBody.setText(tweet.getText());
+            mTvItemTweetCreatedAt.setText(
+                    DateUtils.getRelativeTimeSpanString(tweet.getCreatedAt().getTime()));
+
+            mIvItemTweetProfileImage.setImageResource(android.R.color.transparent);
             Picasso.with(context)
                     .load(tweet.getUser().getProfileImageUrl())
                     .fit()
-                    .into(mIvProfileImage);
+                    .into(mIvItemTweetProfileImage);
         }
     }
 
     class TweetsAdapter extends RecyclerView.Adapter<TweetViewHolder> {
+        // Sorted by ID's in descending order
         private List<Tweet> mTweets = new ArrayList<>();
 
         @Override
@@ -249,7 +345,7 @@ public class TimelineActivity extends AppCompatActivity {
             notifyItemRangeInserted(oldLen, tweets.size());
         }
 
-        public void addAllToFront(ArrayList<Tweet> tweets) {
+        public void addAllToFront(List<Tweet> tweets) {
             List<Tweet> newTweets = new ArrayList<>(tweets);
             newTweets.addAll(mTweets);
             mTweets = newTweets;

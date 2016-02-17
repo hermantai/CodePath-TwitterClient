@@ -90,11 +90,18 @@ package com.codepath.apps.mysimpletweets.models;
   }
 */
 
+import android.util.Log;
+
+import com.codepath.apps.mysimpletweets.Common;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Parse the json + store the data, encapsulate state logic or display logic
@@ -102,39 +109,38 @@ import java.util.ArrayList;
 public class Tweet {
     // list out the attributes
 
-    private String body;
-    private long uid;  // unique id for the tweet
-    private User user;
-    private String createdAt;
+    private String mText;
+    private long mId;  // unique id for the tweet
+    private User mUser;
+    private Date mCreatedAt;
 
     public static Tweet fromJson(JSONObject jsonObject) {
-        Tweet tweet = new Tweet();
-        try {
-            tweet.body = jsonObject.getString("text");
-            tweet.uid = jsonObject.getLong("id");
-            tweet.createdAt = jsonObject.getString("created_at");
-            tweet.user = User.fromJson(jsonObject.getJSONObject("user"));
-        } catch (JSONException e) {
-            e.printStackTrace();
+        Gson gson = new GsonBuilder()
+                // "Tue Aug 28 21:16:23 +0000 2012"
+                .setDateFormat("E MMM dd HH:mm:ss Z yyyy")
+                .setFieldNamingStrategy(new AndroidFieldNamingStrategy())
+                .create();
+        Tweet tweet = gson.fromJson(jsonObject.toString(), Tweet.class);
+        if (tweet.getCreatedAt() == null) {
+            Log.d(Common.INFO_TAG, "Tweet " + jsonObject + " has no created at");
         }
-
         return tweet;
     }
 
-    public String getBody() {
-        return body;
+    public String getText() {
+        return mText;
     }
 
-    public long getUid() {
-        return uid;
+    public long getId() {
+        return mId;
     }
 
-    public String getCreatedAt() {
-        return createdAt;
+    public Date getCreatedAt() {
+        return mCreatedAt;
     }
 
     public User getUser() {
-        return user;
+        return mUser;
     }
 
     public static ArrayList<Tweet> fromJsonArray(JSONArray jsonArray) {
