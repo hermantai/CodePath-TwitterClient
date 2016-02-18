@@ -1,10 +1,11 @@
 package com.codepath.apps.mysimpletweets.models;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 /**
  * "user": {
+     "id": 119476949,
      "name": "OAuth Dancer",
      "profile_sidebar_fill_color": "DDEEF6",
      "profile_background_tile": true,
@@ -33,39 +34,58 @@ import org.json.JSONObject;
      "description": null
     }
  */
-public class User {
-    private String name;
-    private long uid;
-    private String screenName;
-    private String profileImageUrl;
-
-    public static User fromJson(JSONObject json) {
-        User u = new User();
-        try {
-            u.name = json.getString("name");
-            u.uid = json.getLong("id");
-            u.screenName = json.getString("screen_name");
-            u.profileImageUrl = json.getString("profile_image_url");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        return u;
-    }
+public class User implements Parcelable {
+    private String mName;
+    private long mId;
+    private String mScreenName;
+    private String mProfileImageUrl;
 
     public String getName() {
-        return name;
+        return mName;
     }
 
-    public long getUid() {
-        return uid;
+    public long getId() {
+        return mId;
     }
 
     public String getScreenName() {
-        return screenName;
+        return mScreenName;
     }
 
     public String getProfileImageUrl() {
-        return profileImageUrl;
+        return mProfileImageUrl;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.mName);
+        dest.writeLong(this.mId);
+        dest.writeString(this.mScreenName);
+        dest.writeString(this.mProfileImageUrl);
+    }
+
+    public User() {
+    }
+
+    protected User(Parcel in) {
+        this.mName = in.readString();
+        this.mId = in.readLong();
+        this.mScreenName = in.readString();
+        this.mProfileImageUrl = in.readString();
+    }
+
+    public static final Parcelable.Creator<User> CREATOR = new Parcelable.Creator<User>() {
+        public User createFromParcel(Parcel source) {
+            return new User(source);
+        }
+
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
 }

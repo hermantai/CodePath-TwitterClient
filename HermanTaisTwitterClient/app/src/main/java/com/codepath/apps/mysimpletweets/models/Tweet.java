@@ -90,6 +90,8 @@ package com.codepath.apps.mysimpletweets.models;
   }
 */
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.codepath.apps.mysimpletweets.Common;
@@ -106,7 +108,7 @@ import java.util.Date;
 /**
  * Parse the json + store the data, encapsulate state logic or display logic
  */
-public class Tweet {
+public class Tweet implements Parcelable {
     // list out the attributes
 
     private String mText;
@@ -156,4 +158,39 @@ public class Tweet {
 
         return tweets;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.mText);
+        dest.writeLong(this.mId);
+        dest.writeParcelable(this.mUser, flags);
+        dest.writeLong(mCreatedAt != null ? mCreatedAt.getTime() : -1);
+    }
+
+    public Tweet() {
+    }
+
+    protected Tweet(Parcel in) {
+        this.mText = in.readString();
+        this.mId = in.readLong();
+        this.mUser = in.readParcelable(User.class.getClassLoader());
+        long tmpMCreatedAt = in.readLong();
+        this.mCreatedAt = tmpMCreatedAt == -1 ? null : new Date(tmpMCreatedAt);
+    }
+
+    public static final Parcelable.Creator<Tweet> CREATOR = new Parcelable.Creator<Tweet>() {
+        public Tweet createFromParcel(Parcel source) {
+            return new Tweet(source);
+        }
+
+        public Tweet[] newArray(int size) {
+            return new Tweet[size];
+        }
+    };
 }
