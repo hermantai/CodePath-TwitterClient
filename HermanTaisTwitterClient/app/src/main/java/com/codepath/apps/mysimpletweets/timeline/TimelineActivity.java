@@ -1,7 +1,11 @@
 package com.codepath.apps.mysimpletweets.timeline;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -42,7 +46,7 @@ import butterknife.ButterKnife;
 
 public class TimelineActivity extends AppCompatActivity {
     private static final SimpleDateFormat sDateFormat = new SimpleDateFormat(
-            "MMM dd HH:mm:ss Z yyyy");
+            "E MMM dd HH:mm:ss Z yyyy");
 
     @Bind(R.id.rvTweets) RecyclerView rvTweets;
     @Bind(R.id.fab) FloatingActionButton mFab;
@@ -51,8 +55,31 @@ public class TimelineActivity extends AppCompatActivity {
     private TwitterClient mClient;
     private TweetsAdapter mTweetsAdapter;
     private EndlessRecyclerViewScrollListener mEndlessRecyclerViewScrollListener;
+    private BroadcastReceiver mNetworkChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(Common.INFO_TAG, "Network changed: " + intent);
+            if (mEndlessRecyclerViewScrollListener != null) {
+                mEndlessRecyclerViewScrollListener.enableLoadMore(
+                        NetworkUtil.isNetworkAvailable(TimelineActivity.this));
+            }
+        }
+    };
 
     private boolean mStartedLoadingMore = false;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(mNetworkChangeReceiver, filter);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(mNetworkChangeReceiver);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -279,7 +306,11 @@ public class TimelineActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 mTvItemTweetCreatedAt.setText(sDateFormat.format(mTweet.getCreatedAt()));
+                mTvItemTweetCreatedAt.setBackgroundResource(
+                        R.drawable.rectangle_background_timestamp);
                 mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener2);
+                // To yield space for the time stamp
+                mTvItemTweetUserName.setText("");
             }
         };
 
@@ -288,7 +319,9 @@ public class TimelineActivity extends AppCompatActivity {
             public void onClick(View v) {
                 mTvItemTweetCreatedAt.setText(
                         DateUtils.getRelativeTimeSpanString(mTweet.getCreatedAt().getTime()));
+                mTvItemTweetCreatedAt.setBackgroundResource(0);
                 mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener1);
+                mTvItemTweetUserName.setText(mTweet.getUser().getScreenName());
             }
         };
 

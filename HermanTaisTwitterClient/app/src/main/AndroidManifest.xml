@@ -50,7 +50,7 @@
         </activity>
         <activity
             android:name=".timeline.TimelineActivity"
-            android:label="@string/title_activity_timeline"
+            android:label=""
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>

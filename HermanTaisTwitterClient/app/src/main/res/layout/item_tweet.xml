@@ -31,8 +31,9 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:textAppearance="?android:attr/textAppearanceSmall"
+        android:paddingLeft="3dp"
+        android:paddingRight="3dp"
         tools:text="Created At"
-        android:background="@android:color/white"
         />
 
     <TextView
