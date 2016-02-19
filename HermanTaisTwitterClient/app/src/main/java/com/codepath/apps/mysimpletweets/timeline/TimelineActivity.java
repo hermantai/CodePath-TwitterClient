@@ -29,6 +29,7 @@ import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.helpers.LogUtil;
 import com.codepath.apps.mysimpletweets.helpers.NetworkUtil;
 import com.codepath.apps.mysimpletweets.models.Tweet;
+import com.codepath.apps.mysimpletweets.tweetdetail.TweetDetailActivity;
 import com.codepath.apps.mysimpletweets.twitter.TwitterApplication;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -303,7 +304,7 @@ public class TimelineActivity extends AppCompatActivity
         rvTweets.smoothScrollToPosition(0);
     }
 
-    class TweetViewHolder extends RecyclerView.ViewHolder {
+    class TweetViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         @Bind(R.id.ivItemTweetProfileImage) ImageView mIvItemTweetProfileImage;
         @Bind(R.id.tvItemTweetUserName) TextView mTvItemTweetUserName;
         @Bind(R.id.tvItemTweetBody) TextView mTvItemTweetBody;
@@ -338,7 +339,7 @@ public class TimelineActivity extends AppCompatActivity
             super(itemView);
             ButterKnife.bind(this, itemView);
 
-            mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener1);
+            itemView.setOnClickListener(this);
         }
 
         private void bindTweet(Context context, Tweet tweet) {
@@ -354,6 +355,14 @@ public class TimelineActivity extends AppCompatActivity
                     .load(tweet.getUser().getProfileImageUrl())
                     .fit()
                     .into(mIvItemTweetProfileImage);
+
+            mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener1);
+        }
+
+        @Override
+        public void onClick(View v) {
+            Intent i = TweetDetailActivity.newIntent(TimelineActivity.this, mTweet);
+            startActivity(i);
         }
     }
 
