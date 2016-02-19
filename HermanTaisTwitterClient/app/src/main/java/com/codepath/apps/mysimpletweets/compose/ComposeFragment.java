@@ -30,6 +30,11 @@ public class ComposeFragment extends DialogFragment {
     @Bind(R.id.btnComposeSend) Button mBtnComposeSend;
 
     private TwitterClient mClient;
+    private OnNewTweetHandler mOnNewTweetHandler;
+
+    public interface OnNewTweetHandler {
+        void onNewTweet(Tweet newTweet);
+    }
 
     public static ComposeFragment newInstance() {
         ComposeFragment fragment = new ComposeFragment();
@@ -63,7 +68,13 @@ public class ComposeFragment extends DialogFragment {
                         mBtnComposeSend.setEnabled(true);
 
                         Tweet newTweet = Tweet.fromJson(response);
-                        Log.d(Common.INFO_TAG, response.toString());
+                        Log.d(Common.INFO_TAG, "New tweet: " + response.toString());
+
+                        if (mOnNewTweetHandler != null) {
+                            Log.d(Common.INFO_TAG, "Call OnNewTweetHandler");
+                            mOnNewTweetHandler.onNewTweet(newTweet);
+                        }
+
                         ComposeFragment.this.dismiss();
                     }
 
@@ -84,5 +95,9 @@ public class ComposeFragment extends DialogFragment {
         });
 
         return v;
+    }
+
+    public void setOnNewTweetHandler(OnNewTweetHandler handler) {
+        mOnNewTweetHandler = handler;
     }
 }

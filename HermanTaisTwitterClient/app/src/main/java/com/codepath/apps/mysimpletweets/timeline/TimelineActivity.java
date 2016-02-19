@@ -46,7 +46,8 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
-public class TimelineActivity extends AppCompatActivity {
+public class TimelineActivity extends AppCompatActivity
+        implements ComposeFragment.OnNewTweetHandler{
     private static final SimpleDateFormat sDateFormat = new SimpleDateFormat(
             "E MMM dd HH:mm:ss Z yyyy");
 
@@ -107,6 +108,7 @@ public class TimelineActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 ComposeFragment frag = ComposeFragment.newInstance();
+                frag.setOnNewTweetHandler(TimelineActivity.this);
 
                 FragmentManager fm = getSupportFragmentManager();
                 frag.show(fm, "Compose");
@@ -295,6 +297,12 @@ public class TimelineActivity extends AppCompatActivity {
                 });
     }
 
+    @Override
+    public void onNewTweet(Tweet newTweet) {
+        mTweetsAdapter.addToFront(newTweet);
+        rvTweets.smoothScrollToPosition(0);
+    }
+
     class TweetViewHolder extends RecyclerView.ViewHolder {
         @Bind(R.id.ivItemTweetProfileImage) ImageView mIvItemTweetProfileImage;
         @Bind(R.id.tvItemTweetUserName) TextView mTvItemTweetUserName;
@@ -375,6 +383,11 @@ public class TimelineActivity extends AppCompatActivity {
             int oldLen = mTweets.size();
             mTweets.addAll(tweets);
             notifyItemRangeInserted(oldLen, tweets.size());
+        }
+
+        public void addToFront(Tweet tweet) {
+            mTweets.add(0, tweet);
+            notifyItemInserted(0);
         }
 
         public void addAllToFront(List<Tweet> tweets) {
