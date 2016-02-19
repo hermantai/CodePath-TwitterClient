@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="compose_grey">#808080</color>
+    <color name="twitter_blue">#00aced</color>
 </resources>

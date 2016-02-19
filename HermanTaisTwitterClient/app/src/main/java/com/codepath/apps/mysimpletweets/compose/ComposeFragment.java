@@ -3,6 +3,7 @@ package com.codepath.apps.mysimpletweets.compose;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,6 +29,7 @@ import butterknife.ButterKnife;
 public class ComposeFragment extends DialogFragment {
     @Bind(R.id.etComposeTweet) TextView mEtComposeTweet;
     @Bind(R.id.btnComposeSend) Button mBtnComposeSend;
+    @Bind(R.id.tilComposeTweet) TextInputLayout mTilComposeTweet;
 
     private TwitterClient mClient;
     private OnNewTweetHandler mOnNewTweetHandler;
@@ -87,7 +89,7 @@ public class ComposeFragment extends DialogFragment {
                         ErrorHandling.handleError(
                                 context,
                                 Common.INFO_TAG,
-                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                "Error sending the tweet: " + throwable.getLocalizedMessage(),
                                 throwable);
                     }
                 });
