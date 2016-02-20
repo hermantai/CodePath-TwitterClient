@@ -97,7 +97,7 @@ public class TweetDetailFragment extends Fragment {
                 for (VideoInfoVariant variant : videoInfo.getVariants()) {
                     if (variant.getContentType().equals("application/x-mpegURL")) {
                         mVvTweetDetailVideo.setVideoURI(Uri.parse(variant.getUrl()));
-                        mVvTweetDetailVideo.setMediaController(new MediaController(activity));
+                        //mVvTweetDetailVideo.setMediaController(new MediaController(activity));
                         mVvTweetDetailVideo.requestFocus();
                         mVvTweetDetailVideo.start();
                         done = true;

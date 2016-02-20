@@ -58,6 +58,7 @@
         android:layout_below="@+id/tvItemTweetUserScreenName"
         android:layout_toRightOf="@+id/ivItemTweetProfileImage"
         android:layout_toEndOf="@+id/ivItemTweetProfileImage"
+        android:layout_marginTop="5dp"
         android:textColor="@android:color/black"
         tools:text="New Text"
         />
