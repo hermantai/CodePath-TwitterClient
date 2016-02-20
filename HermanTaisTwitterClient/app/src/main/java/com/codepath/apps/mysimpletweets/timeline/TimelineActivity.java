@@ -29,6 +29,7 @@ import com.codepath.apps.mysimpletweets.compose.ComposeFragment;
 import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.helpers.LogUtil;
 import com.codepath.apps.mysimpletweets.helpers.NetworkUtil;
+import com.codepath.apps.mysimpletweets.helpers.StringUtil;
 import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.repo.TwitterClientPrefs;
@@ -389,6 +390,7 @@ public class TimelineActivity extends AppCompatActivity
     class TweetViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         @Bind(R.id.ivItemTweetProfileImage) ImageView mIvItemTweetProfileImage;
         @Bind(R.id.tvItemTweetUserName) TextView mTvItemTweetUserName;
+        @Bind(R.id.tvItemTweetUserScreenName) TextView mTvItemTweetUserScreenName;
         @Bind(R.id.tvItemTweetBody) TextView mTvItemTweetBody;
         @Bind(R.id.tvItemTweetCreatedAt) TextView mTvItemTweetCreatedAt;
 
@@ -400,7 +402,7 @@ public class TimelineActivity extends AppCompatActivity
                         R.drawable.rectangle_background_timestamp);
                 mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener2);
                 // To yield space for the time stamp
-                mTvItemTweetUserName.setText("");
+                mTvItemTweetUserScreenName.setText("");
             }
         };
 
@@ -411,7 +413,7 @@ public class TimelineActivity extends AppCompatActivity
                         DateUtils.getRelativeTimeSpanString(mTweet.getCreatedAt().getTime()));
                 mTvItemTweetCreatedAt.setBackgroundResource(0);
                 mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener1);
-                mTvItemTweetUserName.setText(mTweet.getUser().getScreenName());
+                mTvItemTweetUserScreenName.setText("@" + mTweet.getUser().getScreenName());
             }
         };
 
@@ -427,10 +429,11 @@ public class TimelineActivity extends AppCompatActivity
         private void bindTweet(Context context, Tweet tweet) {
             mTweet = tweet;
 
-            mTvItemTweetUserName.setText(tweet.getUser().getScreenName());
+            mTvItemTweetUserName.setText(tweet.getUser().getName());
+            mTvItemTweetUserScreenName.setText("@" + tweet.getUser().getScreenName());
             mTvItemTweetBody.setText(tweet.getText());
             mTvItemTweetCreatedAt.setText(
-                    DateUtils.getRelativeTimeSpanString(tweet.getCreatedAt().getTime()));
+                    StringUtil.getRelativeTimeSpanString(tweet.getCreatedAt()));
 
             mIvItemTweetProfileImage.setImageResource(android.R.color.transparent);
             Picasso.with(context)

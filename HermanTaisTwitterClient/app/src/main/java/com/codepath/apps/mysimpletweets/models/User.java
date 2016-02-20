@@ -55,8 +55,6 @@ public class User implements Parcelable {
         return user;
     }
 
-
-
     public String getName() {
         return mName;
     }

@@ -22,6 +22,20 @@
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/ivItemTweetProfileImage"
         android:layout_toEndOf="@+id/ivItemTweetProfileImage"
+        android:textColor="@android:color/black"
+        tools:text="Billy"/>
+
+    <TextView
+        android:id="@+id/tvItemTweetUserScreenName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/tvItemTweetUserName"
+        android:layout_toEndOf="@+id/tvItemTweetUserName"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:textAppearance="@style/smallerText"
+        android:gravity="bottom"
         tools:text="Billy"/>
 
     <TextView
@@ -30,7 +44,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textAppearance="@style/smallerText"
         android:paddingLeft="3dp"
         android:paddingRight="3dp"
         tools:text="Created At"
@@ -40,7 +54,7 @@
         android:id="@+id/tvItemTweetBody"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/tvItemTweetUserName"
+        android:layout_below="@+id/tvItemTweetUserScreenName"
         android:layout_toRightOf="@+id/ivItemTweetProfileImage"
         android:layout_toEndOf="@+id/ivItemTweetProfileImage"
         tools:text="New Text"

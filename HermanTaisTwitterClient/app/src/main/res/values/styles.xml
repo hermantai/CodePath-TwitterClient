@@ -30,4 +30,9 @@
         <item name="android:textColor">#ff0000</item>
     </style>
 
+    <style name="smallerText">
+        <item name="android:textSize">10sp</item>
+        <item name="android:textColor">@color/compose_grey</item>
+    </style>
+
 </resources>
