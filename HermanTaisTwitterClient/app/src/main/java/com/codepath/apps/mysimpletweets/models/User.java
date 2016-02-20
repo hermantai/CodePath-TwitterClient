@@ -3,6 +3,11 @@ package com.codepath.apps.mysimpletweets.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.json.JSONObject;
+
 /**
  * "user": {
      "id": 119476949,
@@ -39,6 +44,18 @@ public class User implements Parcelable {
     private long mId;
     private String mScreenName;
     private String mProfileImageUrl;
+
+    public static User fromJson(JSONObject jsonObject) {
+        Gson gson = new GsonBuilder()
+                // "Tue Aug 28 21:16:23 +0000 2012"
+                .setDateFormat("E MMM dd HH:mm:ss Z yyyy")
+                .setFieldNamingStrategy(new AndroidFieldNamingStrategy())
+                .create();
+        User user = gson.fromJson(jsonObject.toString(), User.class);
+        return user;
+    }
+
+
 
     public String getName() {
         return mName;

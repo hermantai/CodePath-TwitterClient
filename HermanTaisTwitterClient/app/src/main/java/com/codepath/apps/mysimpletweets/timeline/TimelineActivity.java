@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
@@ -29,6 +30,8 @@ import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.helpers.LogUtil;
 import com.codepath.apps.mysimpletweets.helpers.NetworkUtil;
 import com.codepath.apps.mysimpletweets.models.Tweet;
+import com.codepath.apps.mysimpletweets.models.User;
+import com.codepath.apps.mysimpletweets.repo.TwitterClientPrefs;
 import com.codepath.apps.mysimpletweets.tweetdetail.TweetDetailActivity;
 import com.codepath.apps.mysimpletweets.twitter.TwitterApplication;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
@@ -39,7 +42,6 @@ import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +110,15 @@ public class TimelineActivity extends AppCompatActivity
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ComposeFragment frag = ComposeFragment.newInstance();
+                User user = TwitterClientPrefs.getUser(TimelineActivity.this);
+                if (user == null) {
+                    Toast.makeText(
+                            TimelineActivity.this,
+                            "User info does not exist, please pull down to reload",
+                            Toast.LENGTH_LONG)
+                            .show();
+                }
+                ComposeFragment frag = ComposeFragment.newInstance(user);
                 frag.setOnNewTweetHandler(TimelineActivity.this);
 
                 FragmentManager fm = getSupportFragmentManager();
@@ -139,6 +149,7 @@ public class TimelineActivity extends AppCompatActivity
             @Override
             public void onRefresh() {
                 fetchNewerTweets(0);
+                refreshUser();
             }
         });
         mSwipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
@@ -148,6 +159,7 @@ public class TimelineActivity extends AppCompatActivity
 
         mClient = TwitterApplication.getRestClient();
         fetchNewerTweets(0);
+        refreshUser();
     }
 
     /**
@@ -201,6 +213,25 @@ public class TimelineActivity extends AppCompatActivity
                     }
 
                     @Override
+                    public void onFailure(int statusCode, Header[] headers, String
+                            responseString, Throwable throwable) {
+                        mSwipeContainer.setRefreshing(false);
+
+                        ErrorHandling.handleError(
+                                TimelineActivity.this,
+                                Common.INFO_TAG,
+                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                throwable);
+                        LogUtil.d(Common.INFO_TAG, responseString);
+                        showSnackBarForNetworkError(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                fetchNewerTweets(since_id);
+                            }
+                        });
+                    }
+
+                    @Override
                     public void onFailure(
                             int statusCode,
                             Header[] headers,
@@ -213,21 +244,14 @@ public class TimelineActivity extends AppCompatActivity
                                 Common.INFO_TAG,
                                 "Error retrieving tweets: " + throwable.getLocalizedMessage(),
                                 throwable);
-                        if (!NetworkUtil.isNetworkAvailable(TimelineActivity.this)
-                                || throwable instanceof UnknownHostException) {
-                            Snackbar.make(
-                                    rvTweets,
-                                    "Network error!",
-                                    Snackbar.LENGTH_INDEFINITE)
-                                    .setAction("Reload", new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            fetchNewerTweets(since_id);
-                                        }
-                                    })
-                                    .setActionTextColor(Color.WHITE)
-                                    .show();
-                        }
+                        LogUtil.d(Common.INFO_TAG, errorResponse.toString());
+
+                        showSnackBarForNetworkError(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                fetchNewerTweets(since_id);
+                            }
+                        });
                     }
                 });
     }
@@ -265,6 +289,25 @@ public class TimelineActivity extends AppCompatActivity
                     }
 
                     @Override
+                    public void onFailure(int statusCode, Header[] headers, String
+                            responseString, Throwable throwable) {
+                        mSwipeContainer.setRefreshing(false);
+
+                        ErrorHandling.handleError(
+                                TimelineActivity.this,
+                                Common.INFO_TAG,
+                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                throwable);
+                        LogUtil.d(Common.INFO_TAG, responseString);
+                        showSnackBarForNetworkError(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                fetchOlderTweets(max_id);
+                            }
+                        });
+                    }
+
+                    @Override
                     public void onFailure(
                             int statusCode,
                             Header[] headers,
@@ -279,29 +322,68 @@ public class TimelineActivity extends AppCompatActivity
                                 Common.INFO_TAG,
                                 "Error retrieving tweets: " + throwable.getLocalizedMessage(),
                                 throwable);
-                        if (!NetworkUtil.isNetworkAvailable(TimelineActivity.this)
-                                || throwable instanceof UnknownHostException) {
-                            Snackbar.make(
-                                    rvTweets,
-                                    "Network error!",
-                                    Snackbar.LENGTH_INDEFINITE)
-                                    .setAction("Reload", new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            fetchOlderTweets(max_id);
-                                        }
-                                    })
-                                    .setActionTextColor(Color.WHITE)
-                                    .show();
-                        }
+                        LogUtil.d(Common.INFO_TAG, errorResponse.toString());
+                        showSnackBarForNetworkError(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                fetchOlderTweets(max_id);
+                            }
+                        });
                     }
                 });
+    }
+
+    private void refreshUser() {
+        mClient.getCurrentUser(new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                TwitterClientPrefs.setUser(TimelineActivity.this, User.fromJson(response));
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString,
+                                  Throwable throwable) {
+                ErrorHandling.handleError(
+                        TimelineActivity.this,
+                        Common.INFO_TAG,
+                        "Error loading newest user info: " + throwable.getLocalizedMessage(),
+                        throwable);
+                LogUtil.d(Common.INFO_TAG, responseString);
+            }
+
+            @Override
+            public void onFailure(
+                    int statusCode, Header[] headers, Throwable throwable, JSONObject
+                    errorResponse) {
+                ErrorHandling.handleError(
+                        TimelineActivity.this,
+                        Common.INFO_TAG,
+                        "Error retrieving newest user info: " + throwable.getLocalizedMessage(),
+                        throwable);
+                showSnackBarForNetworkError(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        refreshUser();
+                    }
+                });
+            }
+        });
     }
 
     @Override
     public void onNewTweet(Tweet newTweet) {
         mTweetsAdapter.addToFront(newTweet);
         rvTweets.smoothScrollToPosition(0);
+    }
+
+    private void showSnackBarForNetworkError(View.OnClickListener listener) {
+        Snackbar.make(
+                rvTweets,
+                "Network error!",
+                Snackbar.LENGTH_INDEFINITE)
+                .setAction("Reload", listener)
+                .setActionTextColor(Color.YELLOW)
+                .show();
     }
 
     class TweetViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{

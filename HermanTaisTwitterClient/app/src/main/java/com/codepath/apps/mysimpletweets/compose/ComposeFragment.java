@@ -16,6 +16,7 @@ import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.models.Tweet;
+import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.twitter.TwitterApplication;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -27,6 +28,8 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 
 public class ComposeFragment extends DialogFragment {
+    private static final String ARG_USER = "user";
+
     @Bind(R.id.etComposeTweet) TextView mEtComposeTweet;
     @Bind(R.id.btnComposeSend) Button mBtnComposeSend;
     @Bind(R.id.tilComposeTweet) TextInputLayout mTilComposeTweet;
@@ -38,8 +41,10 @@ public class ComposeFragment extends DialogFragment {
         void onNewTweet(Tweet newTweet);
     }
 
-    public static ComposeFragment newInstance() {
+    public static ComposeFragment newInstance(User user) {
         ComposeFragment fragment = new ComposeFragment();
+        Bundle args = new Bundle();
+        args.putParcelable(ARG_USER, user);
 
         return fragment;
     }
