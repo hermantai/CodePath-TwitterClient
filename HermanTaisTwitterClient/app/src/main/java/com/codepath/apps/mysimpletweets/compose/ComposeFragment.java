@@ -14,10 +14,10 @@ import android.widget.TextView;
 
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
+import com.codepath.apps.mysimpletweets.SimpleTweetsApplication;
 import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.User;
-import com.codepath.apps.mysimpletweets.TwitterApplication;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
@@ -52,7 +52,7 @@ public class ComposeFragment extends DialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mClient = TwitterApplication.getRestClient();
+        mClient = SimpleTweetsApplication.getRestClient();
     }
 
     @Nullable

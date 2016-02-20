@@ -36,7 +36,7 @@ import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.repo.TwitterClientPrefs;
 import com.codepath.apps.mysimpletweets.tweetdetail.TweetDetailActivity;
-import com.codepath.apps.mysimpletweets.TwitterApplication;
+import com.codepath.apps.mysimpletweets.SimpleTweetsApplication;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
@@ -159,7 +159,7 @@ public class TimelineActivity extends AppCompatActivity
                 android.R.color.holo_orange_light,
                 android.R.color.holo_red_light);
 
-        mClient = TwitterApplication.getRestClient();
+        mClient = SimpleTweetsApplication.getRestClient();
         fetchNewerTweets(0);
         refreshUser();
     }
