@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.compose.ComposeFragment;
@@ -37,7 +38,6 @@ import com.codepath.apps.mysimpletweets.tweetdetail.TweetDetailActivity;
 import com.codepath.apps.mysimpletweets.twitter.TwitterApplication;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
-import com.squareup.picasso.Picasso;
 
 import org.apache.http.Header;
 import org.json.JSONArray;
@@ -436,9 +436,8 @@ public class TimelineActivity extends AppCompatActivity
                     StringUtil.getRelativeTimeSpanString(tweet.getCreatedAt()));
 
             mIvItemTweetProfileImage.setImageResource(android.R.color.transparent);
-            Picasso.with(context)
+            Glide.with(context)
                     .load(tweet.getUser().getProfileImageUrl())
-                    .fit()
                     .into(mIvItemTweetProfileImage);
 
             mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener1);

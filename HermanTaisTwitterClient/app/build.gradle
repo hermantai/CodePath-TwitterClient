@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.0"
 
     defaultConfig {
-        applicationId "com.codepath.apps.restclienttemplate"
+        applicationId "com.codepath.apps.mysimpletweets"
         minSdkVersion 16
         targetSdkVersion 21
     }
@@ -29,7 +29,6 @@ dependencies {
     // Android Async Http for sending async network requests
     // ActiveAndroid for simple persistence with an ORM
     compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.loopj.android:android-async-http:1.4.8'
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
     compile 'com.android.support:design:23.1.1'
