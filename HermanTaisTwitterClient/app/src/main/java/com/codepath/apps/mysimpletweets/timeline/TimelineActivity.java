@@ -138,7 +138,7 @@ public class TimelineActivity extends AppCompatActivity
             protected void onLoadMore(int page, int totalItemsCount) {
                 int last = mTweetsAdapter.getItemCount() - 1;
                 if (last >= 0) {
-                    long max_id = mTweetsAdapter.getItem(last).getId();
+                    long max_id = mTweetsAdapter.getItem(last).getUid();
                     Log.d(Common.INFO_TAG, "Fetch older tweets with max_id: " + max_id);
                     mStartedLoadingMore = true;
                     fetchOlderTweets(max_id);
@@ -190,10 +190,10 @@ public class TimelineActivity extends AppCompatActivity
                                 && mTweetsAdapter.getItemCount() != 0
                                 // The oldest new tweet is earlier than or equal to newest tweet
                                 // we have so far, in terms of uid of tweets
-                                && newTweets.get(newTweets.size() - 1).getId() >=
-                                        mTweetsAdapter.getItem(0).getId()) {
+                                && newTweets.get(newTweets.size() - 1).getUid() >=
+                                        mTweetsAdapter.getItem(0).getUid()) {
                             // Overlapped with what we have
-                            long newestExistingId = mTweetsAdapter.getItem(0).getId();
+                            long newestExistingId = mTweetsAdapter.getItem(0).getUid();
 
                             int oldestNewItemToBeInserted = newTweets.size() - 1;
                             for (oldestNewItemToBeInserted -= 1;
@@ -201,7 +201,7 @@ public class TimelineActivity extends AppCompatActivity
                                  oldestNewItemToBeInserted--) {
                                 if (
                                         newTweets.get(oldestNewItemToBeInserted)
-                                                .getId() > newestExistingId) {
+                                                .getUid() > newestExistingId) {
                                     break;
                                 }
                             }

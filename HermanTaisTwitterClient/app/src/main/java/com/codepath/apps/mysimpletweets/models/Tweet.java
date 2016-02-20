@@ -93,6 +93,9 @@ package com.codepath.apps.mysimpletweets.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 import com.codepath.apps.mysimpletweets.Common;
 import com.google.gson.Gson;
 
@@ -106,18 +109,29 @@ import java.util.Date;
 /**
  * Parse the json + store the data, encapsulate state logic or display logic
  */
-public class Tweet implements Parcelable {
+@Table(name = "tweet")
+public class Tweet extends Model implements Parcelable {
     // list out the attributes
 
+    @Column(name = "m_text")
     private String mText;
-    private long mId;  // unique id for the tweet
+    @Column(name = "m_uid")
+    private long mUid;  // unique id for the tweet
+    @Column(name = "m_user")
     private User mUser;
+    @Column(name = "m_created_at")
     private Date mCreatedAt;
+    @Column(name = "m_favorite_count")
     private long mFavoriteCount;
+    @Column(name = "m_retweet_count")
     private long mRetweetCount;
+    @Column(name = "m_favorited")
     private boolean mFavorited;
+    @Column(name = "m_retweeted")
     private boolean mRetweeted;
-    private Tweet mRetweetedStatus;
+
+    // Use ExtendedEntitiesTypeSerializer to serialize this
+    @Column(name = "m_extended_entities")
     private ExtendedEntities mExtendedEntities;
     // Indicates there are potentially more tweets before this tweet (in terms of id) that they may
     // not be in the cache. This flag should not be in the model but I am lazy to create another
@@ -134,8 +148,8 @@ public class Tweet implements Parcelable {
         return mText;
     }
 
-    public long getId() {
-        return mId;
+    public long getUid() {
+        return mUid;
     }
 
     public Date getCreatedAt() {
@@ -162,20 +176,12 @@ public class Tweet implements Parcelable {
         return mRetweeted;
     }
 
-    public Tweet getRetweetedStatus() {
-        return mRetweetedStatus;
-    }
-
     public ExtendedEntities getExtendedEntities() {
         return mExtendedEntities;
     }
 
     public boolean isHasMoreBefore() {
         return hasMoreBefore;
-    }
-
-    public void setHasMoreBefore(boolean hasMoreBefore) {
-        this.hasMoreBefore = hasMoreBefore;
     }
 
     public static ArrayList<Tweet> fromJsonArray(JSONArray jsonArray) {
@@ -208,21 +214,20 @@ public class Tweet implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.mText);
-        dest.writeLong(this.mId);
+        dest.writeLong(this.mUid);
         dest.writeParcelable(this.mUser, 0);
         dest.writeLong(mCreatedAt != null ? mCreatedAt.getTime() : -1);
         dest.writeLong(this.mFavoriteCount);
         dest.writeLong(this.mRetweetCount);
         dest.writeByte(mFavorited ? (byte) 1 : (byte) 0);
         dest.writeByte(mRetweeted ? (byte) 1 : (byte) 0);
-        dest.writeParcelable(this.mRetweetedStatus, 0);
         dest.writeParcelable(this.mExtendedEntities, 0);
         dest.writeByte(hasMoreBefore ? (byte) 1 : (byte) 0);
     }
 
     protected Tweet(Parcel in) {
         this.mText = in.readString();
-        this.mId = in.readLong();
+        this.mUid = in.readLong();
         this.mUser = in.readParcelable(User.class.getClassLoader());
         long tmpMCreatedAt = in.readLong();
         this.mCreatedAt = tmpMCreatedAt == -1 ? null : new Date(tmpMCreatedAt);
@@ -230,7 +235,6 @@ public class Tweet implements Parcelable {
         this.mRetweetCount = in.readLong();
         this.mFavorited = in.readByte() != 0;
         this.mRetweeted = in.readByte() != 0;
-        this.mRetweetedStatus = in.readParcelable(Tweet.class.getClassLoader());
         this.mExtendedEntities = in.readParcelable(ExtendedEntities.class.getClassLoader());
         this.hasMoreBefore = in.readByte() != 0;
     }
