@@ -58,7 +58,7 @@ public class TweetDetailFragment extends Fragment {
         ButterKnife.bind(this, v);
 
         Tweet tweet = getArguments().getParcelable(ARG_TWEET);
-        LogUtil.d(Common.INFO_TAG, "Detail for tweet: " + Common.getGson().toJson(tweet));
+        LogUtil.d(Common.INFO_TAG, "Detail for tweet: " + tweet);
         Activity activity = getActivity();
 
         Glide.with(activity)

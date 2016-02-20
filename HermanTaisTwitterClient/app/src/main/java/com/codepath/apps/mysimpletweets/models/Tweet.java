@@ -94,6 +94,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.codepath.apps.mysimpletweets.Common;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -124,7 +125,9 @@ public class Tweet implements Parcelable {
     private boolean hasMoreBefore = false;
 
     public static Tweet fromJson(JSONObject jsonObject) {
-        return Common.getGson().fromJson(jsonObject.toString(), Tweet.class);
+        Gson gson = Common.getGson();
+        Tweet tweet = gson.fromJson(jsonObject.toString(), Tweet.class);
+        return tweet;
     }
 
     public String getText() {
@@ -189,6 +192,10 @@ public class Tweet implements Parcelable {
         return tweets;
     }
 
+    @Override
+    public String toString() {
+        return Common.getGson().toJson(this);
+    }
 
     public Tweet() {
     }
