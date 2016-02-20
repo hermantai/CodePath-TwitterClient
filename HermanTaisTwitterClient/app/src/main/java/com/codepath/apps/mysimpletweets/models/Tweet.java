@@ -118,6 +118,10 @@ public class Tweet implements Parcelable {
     private boolean mRetweeted;
     private Tweet mRetweetedStatus;
     private ExtendedEntities mExtendedEntities;
+    // Indicates there are potentially more tweets before this tweet (in terms of id) that they may
+    // not be in the cache. This flag should not be in the model but I am lazy to create another
+    // proxy model for persistence.
+    private boolean hasMoreBefore = false;
 
     public static Tweet fromJson(JSONObject jsonObject) {
         return Common.getGson().fromJson(jsonObject.toString(), Tweet.class);
@@ -163,6 +167,14 @@ public class Tweet implements Parcelable {
         return mExtendedEntities;
     }
 
+    public boolean isHasMoreBefore() {
+        return hasMoreBefore;
+    }
+
+    public void setHasMoreBefore(boolean hasMoreBefore) {
+        this.hasMoreBefore = hasMoreBefore;
+    }
+
     public static ArrayList<Tweet> fromJsonArray(JSONArray jsonArray) {
         ArrayList<Tweet> tweets = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++ ) {
@@ -198,6 +210,7 @@ public class Tweet implements Parcelable {
         dest.writeByte(mRetweeted ? (byte) 1 : (byte) 0);
         dest.writeParcelable(this.mRetweetedStatus, 0);
         dest.writeParcelable(this.mExtendedEntities, 0);
+        dest.writeByte(hasMoreBefore ? (byte) 1 : (byte) 0);
     }
 
     protected Tweet(Parcel in) {
@@ -212,6 +225,7 @@ public class Tweet implements Parcelable {
         this.mRetweeted = in.readByte() != 0;
         this.mRetweetedStatus = in.readParcelable(Tweet.class.getClassLoader());
         this.mExtendedEntities = in.readParcelable(ExtendedEntities.class.getClassLoader());
+        this.hasMoreBefore = in.readByte() != 0;
     }
 
     public static final Creator<Tweet> CREATOR = new Creator<Tweet>() {
