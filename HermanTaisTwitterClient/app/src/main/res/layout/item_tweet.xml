@@ -23,6 +23,7 @@
         android:layout_toRightOf="@+id/ivItemTweetProfileImage"
         android:layout_toEndOf="@+id/ivItemTweetProfileImage"
         android:textColor="@android:color/black"
+        android:textStyle="bold"
         tools:text="Billy"/>
 
     <TextView
@@ -36,7 +37,7 @@
         android:layout_marginRight="5dp"
         android:textAppearance="@style/smallerText"
         android:gravity="bottom"
-        tools:text="Billy"/>
+        tools:text="\@billy"/>
 
     <TextView
         android:id="@+id/tvItemTweetCreatedAt"
@@ -57,6 +58,7 @@
         android:layout_below="@+id/tvItemTweetUserScreenName"
         android:layout_toRightOf="@+id/ivItemTweetProfileImage"
         android:layout_toEndOf="@+id/ivItemTweetProfileImage"
+        android:textColor="@android:color/black"
         tools:text="New Text"
         />
 </RelativeLayout>

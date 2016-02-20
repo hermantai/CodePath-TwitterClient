@@ -31,6 +31,7 @@ import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.helpers.LogUtil;
 import com.codepath.apps.mysimpletweets.helpers.NetworkUtil;
 import com.codepath.apps.mysimpletweets.helpers.StringUtil;
+import com.codepath.apps.mysimpletweets.models.Media;
 import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.repo.TwitterClientPrefs;
@@ -431,7 +432,25 @@ public class TimelineActivity extends AppCompatActivity
 
             mTvItemTweetUserName.setText(tweet.getUser().getName());
             mTvItemTweetUserScreenName.setText("@" + tweet.getUser().getScreenName());
-            mTvItemTweetBody.setText(tweet.getText());
+
+            // somehow twitter adds the url to the text...
+            if (mTweet.getExtendedEntities() != null) {
+                List<String> urlsToBeRemoved = new ArrayList<>();
+                for (Media media : mTweet.getExtendedEntities().getMedia()) {
+                    urlsToBeRemoved.add(media.getUrl());
+                }
+
+                if (!urlsToBeRemoved.isEmpty()) {
+                    String s = tweet.getText();
+                    for (String toBeRemoved : urlsToBeRemoved) {
+                        s = s.replace(toBeRemoved, "");
+                    }
+                    mTvItemTweetBody.setText(s);
+                }
+            } else {
+                mTvItemTweetBody.setText(tweet.getText());
+            }
+
             mTvItemTweetCreatedAt.setText(
                     StringUtil.getRelativeTimeSpanString(tweet.getCreatedAt()));
 
