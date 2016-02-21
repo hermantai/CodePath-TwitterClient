@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +41,8 @@ public class TweetDetailFragment extends Fragment {
     @Bind(R.id.llTweetDetailPictures) LinearLayout mLlTweetDetailPictures;
     @Bind(R.id.vvTweetDetailVideo) VideoView mVvTweetDetailVideo;
     @Bind(R.id.tvTweetDetailCreatedAt) TextView mTvTweetDetailCreatedAt;
+    @Bind(R.id.llTweetDetailRetweetLikeCounts) LinearLayout mLlTweetDetailRetweetLikeCounts;
+    @Bind(R.id.tvTweetDetailRetweetLikeCounts) TextView mTvTweetDetailRetweetLikeCounts;
 
     public static TweetDetailFragment newInstance(Tweet tweet) {
         Bundle bundle = new Bundle();
@@ -130,6 +133,28 @@ public class TweetDetailFragment extends Fragment {
         }
 
         mTvTweetDetailCreatedAt.setText(tweet.getCreatedAt().toString());
+
+        StringBuilder retweetLikeCountsSb = new StringBuilder();
+        if (tweet.getRetweetCount() > 0) {
+            retweetLikeCountsSb.append("<font color=\"black\">");
+            retweetLikeCountsSb.append(tweet.getRetweetCount());
+            retweetLikeCountsSb.append("</font>");
+            retweetLikeCountsSb.append(" RETWEETS");
+        }
+        if (tweet.getFavoriteCount() > 0) {
+            if (retweetLikeCountsSb.length() > 0) {
+                retweetLikeCountsSb.append(" ");
+            }
+            retweetLikeCountsSb.append("<font color=\"black\">");
+            retweetLikeCountsSb.append(tweet.getFavoriteCount());
+            retweetLikeCountsSb.append("</font>");
+            retweetLikeCountsSb.append(" LIKES");
+        }
+
+        if (retweetLikeCountsSb.length() > 0) {
+            mLlTweetDetailRetweetLikeCounts.setVisibility(View.VISIBLE);
+            mTvTweetDetailRetweetLikeCounts.setText(Html.fromHtml(retweetLikeCountsSb.toString()));
+        }
 
         return v;
     }
