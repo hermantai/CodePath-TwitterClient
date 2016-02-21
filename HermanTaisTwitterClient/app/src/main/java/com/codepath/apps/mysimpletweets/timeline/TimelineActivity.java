@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
@@ -23,9 +24,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.activeandroid.Cache;
+import com.activeandroid.query.Select;
 import com.bumptech.glide.Glide;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
+import com.codepath.apps.mysimpletweets.SimpleTweetsApplication;
 import com.codepath.apps.mysimpletweets.compose.ComposeFragment;
 import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.helpers.LogUtil;
@@ -36,7 +40,6 @@ import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.repo.TwitterClientPrefs;
 import com.codepath.apps.mysimpletweets.tweetdetail.TweetDetailActivity;
-import com.codepath.apps.mysimpletweets.SimpleTweetsApplication;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
@@ -153,7 +156,11 @@ public class TimelineActivity extends AppCompatActivity
         mSwipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                fetchNewerTweets(0);
+                if (mTweetsAdapter.getItemCount() > 0) {
+                    fetchNewerTweets(mTweetsAdapter.getItem(0).getUid());
+                } else {
+                    fetchNewerTweets(0);
+                }
                 refreshUser();
             }
         });
@@ -217,7 +224,6 @@ public class TimelineActivity extends AppCompatActivity
                                 }
                             }
                         }
-                        Tweet.saveAll(newTweets);
                         mTweetsAdapter.addAllToFront(newTweets);
                     }
 
@@ -253,7 +259,9 @@ public class TimelineActivity extends AppCompatActivity
                                 Common.INFO_TAG,
                                 "Error retrieving tweets: " + throwable.getLocalizedMessage(),
                                 throwable);
-                        LogUtil.d(Common.INFO_TAG, errorResponse.toString());
+                        LogUtil.d(
+                                Common.INFO_TAG,
+                                errorResponse == null ? "" : errorResponse.toString());
 
                         showSnackBarForNetworkError(new View.OnClickListener() {
                             @Override
@@ -286,7 +294,6 @@ public class TimelineActivity extends AppCompatActivity
                         // Create models
                         // Load the model data into ListView
                         List<Tweet> newTweets = Tweet.fromJsonArray(response);
-                        Tweet.saveAll(newTweets);
                         mTweetsAdapter.addAll(newTweets);
 
                         if (mStartedLoadingMore) {
@@ -388,7 +395,6 @@ public class TimelineActivity extends AppCompatActivity
     @Override
     public void onNewTweet(Tweet newTweet) {
         newTweet.setHasMoreBefore(true);
-        newTweet.save();
         mTweetsAdapter.addToFront(newTweet);
         rvTweets.smoothScrollToPosition(0);
     }
@@ -485,8 +491,11 @@ public class TimelineActivity extends AppCompatActivity
     }
 
     class TweetsAdapter extends RecyclerView.Adapter<TweetViewHolder> {
-        // Sorted by ID's in descending order
-        private List<Tweet> mTweets = new ArrayList<>();
+        private Cursor mCursor;
+
+        public TweetsAdapter() {
+            mCursor = fetchTweetsCursor();
+        }
 
         @Override
         public TweetViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -497,35 +506,44 @@ public class TimelineActivity extends AppCompatActivity
 
         @Override
         public void onBindViewHolder(TweetViewHolder holder, int position) {
-            Tweet tweet = mTweets.get(position);
+            Tweet tweet = getItem(position);;
             holder.bindTweet(TimelineActivity.this, tweet);
         }
 
         @Override
         public int getItemCount() {
-            return mTweets.size();
+            return mCursor.getCount();
         }
 
         public void addAll(List<Tweet> tweets) {
-            int oldLen = mTweets.size();
-            mTweets.addAll(tweets);
+            int oldLen = getItemCount();
+            Tweet.saveAll(tweets);
+            mCursor = fetchTweetsCursor();
             notifyItemRangeInserted(oldLen, tweets.size());
         }
 
         public void addToFront(Tweet tweet) {
-            mTweets.add(0, tweet);
+            tweet.save();
+            mCursor = fetchTweetsCursor();
             notifyItemInserted(0);
         }
 
         public void addAllToFront(List<Tweet> tweets) {
-            List<Tweet> newTweets = new ArrayList<>(tweets);
-            newTweets.addAll(mTweets);
-            mTweets = newTweets;
+            Tweet.saveAll(tweets);
+            mCursor = fetchTweetsCursor();
             notifyDataSetChanged();
         }
 
         public Tweet getItem(int position) {
-            return mTweets.get(position);
+            mCursor.moveToPosition(position);
+            Tweet tweet = new Tweet();
+            tweet.loadFromCursor(mCursor);
+            return tweet;
+        }
+
+        private Cursor fetchTweetsCursor() {
+            String resultRecords = new Select().from(Tweet.class).orderBy("m_uid desc").toSql();
+            return Cache.openDatabase().rawQuery(resultRecords, new String[]{});
         }
     }
 }
