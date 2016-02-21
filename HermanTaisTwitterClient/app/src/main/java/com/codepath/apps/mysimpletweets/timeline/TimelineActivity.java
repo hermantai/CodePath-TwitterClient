@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -64,6 +65,7 @@ public class TimelineActivity extends AppCompatActivity
     @Bind(R.id.rvTweets) RecyclerView rvTweets;
     @Bind(R.id.fab) FloatingActionButton mFab;
     @Bind(R.id.swipeContainer) SwipeRefreshLayout mSwipeContainer;
+    @Bind(R.id.pbLoading) ProgressBar mPbLoading;
 
     private TwitterClient mClient;
     private TweetsAdapter mTweetsAdapter;
@@ -280,6 +282,7 @@ public class TimelineActivity extends AppCompatActivity
      * @param max_id The ID of the newest tweets to retrieve, exclusive.
      */
     private void fetchOlderTweets(final long max_id) {
+        mPbLoading.setVisibility(View.VISIBLE);
         mClient.getHomeTimeline(
                 10,
                 0,
@@ -303,6 +306,7 @@ public class TimelineActivity extends AppCompatActivity
                                 mEndlessRecyclerViewScrollListener.notifyNoMoreItems();
                             }
                         }
+                        mPbLoading.setVisibility(View.GONE);
                     }
 
                     @Override
@@ -325,6 +329,7 @@ public class TimelineActivity extends AppCompatActivity
                                 fetchOlderTweets(max_id);
                             }
                         });
+                        mPbLoading.setVisibility(View.GONE);
                     }
 
                     @Override
@@ -351,6 +356,7 @@ public class TimelineActivity extends AppCompatActivity
                                 fetchOlderTweets(max_id);
                             }
                         });
+                        mPbLoading.setVisibility(View.GONE);
                     }
                 });
     }
@@ -365,6 +371,7 @@ public class TimelineActivity extends AppCompatActivity
     private void fetchOlderTweetsForTimelineGap(
             final Tweet tweetWithGapEarlier,
             final long since_id) {
+        mPbLoading.setVisibility(View.VISIBLE);
         mClient.getHomeTimeline(
                 10,
                 since_id - 1,  // This means we should get the prev tweet back if there is no gap
@@ -386,6 +393,7 @@ public class TimelineActivity extends AppCompatActivity
                         tweetWithGapEarlier.setHasMoreBefore(false);
                         newTweets.add(tweetWithGapEarlier);
                         mTweetsAdapter.addAll(newTweets);
+                        mPbLoading.setVisibility(View.GONE);
                     }
 
                     @Override
@@ -397,6 +405,7 @@ public class TimelineActivity extends AppCompatActivity
                                 "Error retrieving tweets: " + throwable.getLocalizedMessage(),
                                 throwable);
                         LogUtil.d(Common.INFO_TAG, responseString);
+                        mPbLoading.setVisibility(View.GONE);
                     }
 
                     @Override
@@ -413,6 +422,7 @@ public class TimelineActivity extends AppCompatActivity
                         LogUtil.d(
                                 Common.INFO_TAG,
                                 errorResponse == null ? "" : errorResponse.toString());
+                        mPbLoading.setVisibility(View.GONE);
                     }
                 });
     }

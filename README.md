@@ -2,7 +2,7 @@
 
 **Simple Tweets** is an android app that allows a user to view his Twitter timeline and post a new tweet. The app utilizes [Twitter REST API](https://dev.twitter.com/rest/public).
 
-Time spent: **27** hours spent in total
+Time spent: **29** hours spent in total
 
 ## User Stories
 
@@ -57,12 +57,16 @@ The following **additional** features are implemented:
     timeline. The gap exists because when we fetch new tweets, the oldest of
     them may still be much newer than the tweets we have before.
   * Show my replies to tweets (not sure how to show replies from others)
+  * Progress bar when loading older items
 
 ## Video Walkthrough 
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/link/to/your/gif/file.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='tweet-client-overall.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='tweet-client-time-gap-solved-by-show-more-items-click-links-reply.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='tweet-client-retweet-like.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='tweet-client-new-items-and-offline.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
@@ -72,8 +76,11 @@ Describe any challenges encountered while building the app.
 
 ## Open-source libraries used
 
+- [Active Android](https://github.com/pardom/ActiveAndroid/wiki/Getting-started) ActiveAndroid is an active record style ORM (object relational mapper).
 - [Android Async HTTP](https://github.com/loopj/android-async-http) - Simple asynchronous HTTP requests with JSON parsing
-- [Picasso](http://square.github.io/picasso/) - Image loading and caching library for Android
+- [Butter Knife](http://jakewharton.github.io/butterknife/) - Field and method binding for Android views
+- [Glide](https://github.com/bumptech/glide) - An image loading and caching library for Android focused on smooth scrolling
+- [Gson](https://github.com/google/gson) - A Java serialization library that can convert Java Objects into JSON and back.
 
 ## License
 
