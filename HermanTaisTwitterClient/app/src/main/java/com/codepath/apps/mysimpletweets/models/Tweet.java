@@ -93,6 +93,7 @@ package com.codepath.apps.mysimpletweets.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.activeandroid.ActiveAndroid;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -105,6 +106,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Parse the json + store the data, encapsulate state logic or display logic
@@ -115,7 +117,10 @@ public class Tweet extends Model implements Parcelable {
 
     @Column(name = "m_text")
     private String mText;
-    @Column(name = "m_uid")
+    @Column(name = "m_uid",
+            index = true,
+            unique = true,
+            onUniqueConflict = Column.ConflictAction.REPLACE)
     private long mUid;  // unique id for the tweet
     @Column(name = "m_user")
     private User mUser;
@@ -136,12 +141,25 @@ public class Tweet extends Model implements Parcelable {
     // Indicates there are potentially more tweets before this tweet (in terms of id) that they may
     // not be in the cache. This flag should not be in the model but I am lazy to create another
     // proxy model for persistence.
-    private boolean hasMoreBefore = false;
+    @Column(name = "m_has_more_before")
+    private boolean mHasMoreBefore = false;
 
     public static Tweet fromJson(JSONObject jsonObject) {
         Gson gson = Common.getGson();
         Tweet tweet = gson.fromJson(jsonObject.toString(), Tweet.class);
         return tweet;
+    }
+
+    public static void saveAll(List<Tweet> tweets) {
+        ActiveAndroid.beginTransaction();
+        try {
+            for (Tweet tweet : tweets) {
+                tweet.save();
+            }
+            ActiveAndroid.setTransactionSuccessful();
+        } finally {
+            ActiveAndroid.endTransaction();
+        }
     }
 
     public String getText() {
@@ -181,7 +199,11 @@ public class Tweet extends Model implements Parcelable {
     }
 
     public boolean isHasMoreBefore() {
-        return hasMoreBefore;
+        return mHasMoreBefore;
+    }
+
+    public void setHasMoreBefore(boolean hasMoreBefore) {
+        this.mHasMoreBefore = hasMoreBefore;
     }
 
     public static ArrayList<Tweet> fromJsonArray(JSONArray jsonArray) {
@@ -222,7 +244,7 @@ public class Tweet extends Model implements Parcelable {
         dest.writeByte(mFavorited ? (byte) 1 : (byte) 0);
         dest.writeByte(mRetweeted ? (byte) 1 : (byte) 0);
         dest.writeParcelable(this.mExtendedEntities, 0);
-        dest.writeByte(hasMoreBefore ? (byte) 1 : (byte) 0);
+        dest.writeByte(mHasMoreBefore ? (byte) 1 : (byte) 0);
     }
 
     protected Tweet(Parcel in) {
@@ -236,7 +258,7 @@ public class Tweet extends Model implements Parcelable {
         this.mFavorited = in.readByte() != 0;
         this.mRetweeted = in.readByte() != 0;
         this.mExtendedEntities = in.readParcelable(ExtendedEntities.class.getClassLoader());
-        this.hasMoreBefore = in.readByte() != 0;
+        this.mHasMoreBefore = in.readByte() != 0;
     }
 
     public static final Creator<Tweet> CREATOR = new Creator<Tweet>() {

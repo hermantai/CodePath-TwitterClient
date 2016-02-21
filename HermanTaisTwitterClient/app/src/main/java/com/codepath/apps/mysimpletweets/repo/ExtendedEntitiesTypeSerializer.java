@@ -1,7 +1,5 @@
 package com.codepath.apps.mysimpletweets.repo;
 
-import android.util.Log;
-
 import com.activeandroid.serializer.TypeSerializer;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.models.ExtendedEntities;
@@ -22,13 +20,11 @@ public class ExtendedEntitiesTypeSerializer extends TypeSerializer {
 
     @Override
     public Object serialize(Object data) {
-        Log.d(Common.INFO_TAG, "ExtendedEntitiesTypeSerializer get called to serialize");
         return mGson.toJson(data);
     }
 
     @Override
     public Object deserialize(Object data) {
-        Log.d(Common.INFO_TAG, "ExtendedEntitiesTypeSerializer get called to deserialize");
         return mGson.fromJson(data.toString(), ExtendedEntities.class);
     }
 }

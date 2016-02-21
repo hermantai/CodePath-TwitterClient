@@ -138,10 +138,13 @@ public class TimelineActivity extends AppCompatActivity
             protected void onLoadMore(int page, int totalItemsCount) {
                 int last = mTweetsAdapter.getItemCount() - 1;
                 if (last >= 0) {
+                    // only load more if we have some existing items
                     long max_id = mTweetsAdapter.getItem(last).getUid();
                     Log.d(Common.INFO_TAG, "Fetch older tweets with max_id: " + max_id);
                     mStartedLoadingMore = true;
                     fetchOlderTweets(max_id);
+                } else {
+                    mEndlessRecyclerViewScrollListener.notifyLoadMoreFailed();
                 }
             }
         };
@@ -183,35 +186,39 @@ public class TimelineActivity extends AppCompatActivity
 
                         // Deserialize JSON
                         // Create models
-                        // Load the model data into ListView
+                        // Note that response sorts tweets in descending IDs
                         List<Tweet> newTweets = Tweet.fromJsonArray(response);
-                        // TODO: handle gaps on the timeline created from this
+                        // Load the model data into ListView
                         if (!newTweets.isEmpty()
-                                && mTweetsAdapter.getItemCount() != 0
-                                // The oldest new tweet is earlier than or equal to newest tweet
-                                // we have so far, in terms of uid of tweets
-                                && newTweets.get(newTweets.size() - 1).getUid() >=
-                                        mTweetsAdapter.getItem(0).getUid()) {
-                            // Overlapped with what we have
-                            long newestExistingId = mTweetsAdapter.getItem(0).getUid();
+                                && mTweetsAdapter.getItemCount() != 0) {
+                            // Is the oldest new tweet is newer than newest tweet
+                            // we have so far, in terms of uid of tweets
+                            if (newTweets.get(newTweets.size() - 1).getUid() >
+                                    mTweetsAdapter.getItem(0).getUid()) {
+                                // There is a gap between the newTweets and what we have so far
+                                newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
+                            } else {
+                                // Overlapped with what we have and we assume there is no gap on
+                                // the timeline or no reduction on the gap already exist
+                                // in the timeline produced by this fetch,
+                                // because we assume that any new fetches cannot fetch more items
+                                // which are older than mTweetsAdapter.getItem(0),
+                                // than the fetches that fetched mTweetsAdapter.getItem(0)
+                                long newestExistingId = mTweetsAdapter.getItem(0).getUid();
 
-                            int oldestNewItemToBeInserted = newTweets.size() - 1;
-                            for (oldestNewItemToBeInserted -= 1;
-                                 oldestNewItemToBeInserted >= 0;
-                                 oldestNewItemToBeInserted--) {
-                                if (
-                                        newTweets.get(oldestNewItemToBeInserted)
-                                                .getUid() > newestExistingId) {
-                                    break;
+                                int oldestNewItemToBeInserted = newTweets.size() - 1;
+                                for (oldestNewItemToBeInserted -= 1;
+                                     oldestNewItemToBeInserted >= 0
+                                             && newTweets.get(oldestNewItemToBeInserted).getUid()
+                                                    <= newestExistingId;
+                                     oldestNewItemToBeInserted--);
+                                if (oldestNewItemToBeInserted >= 0) {
+                                    newTweets = newTweets.subList(0, oldestNewItemToBeInserted + 1);
                                 }
                             }
-                            if (oldestNewItemToBeInserted >= 0) {
-                                mTweetsAdapter.addAllToFront(
-                                        newTweets.subList(0, oldestNewItemToBeInserted + 1));
-                            }
-                        } else {
-                            mTweetsAdapter.addAllToFront(newTweets);
                         }
+                        Tweet.saveAll(newTweets);
+                        mTweetsAdapter.addAllToFront(newTweets);
                     }
 
                     @Override
@@ -279,6 +286,7 @@ public class TimelineActivity extends AppCompatActivity
                         // Create models
                         // Load the model data into ListView
                         List<Tweet> newTweets = Tweet.fromJsonArray(response);
+                        Tweet.saveAll(newTweets);
                         mTweetsAdapter.addAll(newTweets);
 
                         if (mStartedLoadingMore) {
@@ -293,7 +301,10 @@ public class TimelineActivity extends AppCompatActivity
                     @Override
                     public void onFailure(int statusCode, Header[] headers, String
                             responseString, Throwable throwable) {
-                        mSwipeContainer.setRefreshing(false);
+                        if (mStartedLoadingMore && mEndlessRecyclerViewScrollListener != null) {
+                            mStartedLoadingMore = false;
+                            mEndlessRecyclerViewScrollListener.notifyLoadMoreFailed();
+                        }
 
                         ErrorHandling.handleError(
                                 TimelineActivity.this,
@@ -324,7 +335,9 @@ public class TimelineActivity extends AppCompatActivity
                                 Common.INFO_TAG,
                                 "Error retrieving tweets: " + throwable.getLocalizedMessage(),
                                 throwable);
-                        LogUtil.d(Common.INFO_TAG, errorResponse.toString());
+                        LogUtil.d(
+                                Common.INFO_TAG,
+                                errorResponse == null ? "" : errorResponse.toString());
                         showSnackBarForNetworkError(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -374,6 +387,8 @@ public class TimelineActivity extends AppCompatActivity
 
     @Override
     public void onNewTweet(Tweet newTweet) {
+        newTweet.setHasMoreBefore(true);
+        newTweet.save();
         mTweetsAdapter.addToFront(newTweet);
         rvTweets.smoothScrollToPosition(0);
     }

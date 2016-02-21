@@ -22,7 +22,7 @@
         android:theme="@style/AppTheme">
         <meta-data
             android:name="AA_DB_NAME"
-            android:value="RestClient.db"/>
+            android:value="MySimpleTweets.db"/>
         <meta-data
             android:name="AA_DB_VERSION"
             android:value="1"/>
@@ -31,7 +31,7 @@
             android:value="com.codepath.apps.mysimpletweets.models.Tweet" />
         <meta-data
             android:name="AA_SERIALIZERS"
-            android:value="com.codepath.apps.mysimpletweets.repo.ExtendedEntitiesTypeSerializer"/>
+            android:value="com.codepath.apps.mysimpletweets.repo.ExtendedEntitiesTypeSerializer, com.codepath.apps.mysimpletweets.repo.UserTypeSerializer"/>
 
         <activity
             android:name=".login.LoginActivity"
