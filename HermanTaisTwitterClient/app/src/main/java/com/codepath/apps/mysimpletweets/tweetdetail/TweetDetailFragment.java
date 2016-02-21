@@ -16,7 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -152,25 +151,20 @@ public class TweetDetailFragment extends Fragment {
                     for (VideoInfoVariant variant : videoInfo.getVariants()) {
                         if (variant.getContentType().equals("application/x-mpegURL")) {
                             videoUrl = variant.getUrl();
-                            mVvTweetDetailVideo.setVideoURI(Uri.parse(videoUrl));
-                            //mVvTweetDetailVideo.setMediaController(new MediaController(activity));
-                            mVvTweetDetailVideo.requestFocus();
-                            mVvTweetDetailVideo.start();
-                            mVvTweetDetailVideo.setVisibility(View.VISIBLE);
-                            mVFullScreenVideoTrigger.setVisibility(View.VISIBLE);
                             break;
                         }
                     }
                     if (videoUrl == null) {
                         VideoInfoVariant variant = videoInfo.getVariants().get(1);
                         videoUrl = variant.getUrl();
-                        mVvTweetDetailVideo.setVideoURI(Uri.parse(videoUrl));
-                        mVvTweetDetailVideo.setMediaController(new MediaController(activity));
-                        mVvTweetDetailVideo.requestFocus();
-                        mVvTweetDetailVideo.start();
-                        mVvTweetDetailVideo.setVisibility(View.VISIBLE);
-                        mVFullScreenVideoTrigger.setVisibility(View.VISIBLE);
                     }
+
+                    mVvTweetDetailVideo.setVideoURI(Uri.parse(videoUrl));
+                    mVvTweetDetailVideo.requestFocus();
+                    mVvTweetDetailVideo.start();
+                    mVvTweetDetailVideo.setVisibility(View.VISIBLE);
+                    mVFullScreenVideoTrigger.setVisibility(View.VISIBLE);
+
                     final String _videoUrl = videoUrl;
                     mVFullScreenVideoTrigger.setOnClickListener(new View.OnClickListener() {
                         @Override
