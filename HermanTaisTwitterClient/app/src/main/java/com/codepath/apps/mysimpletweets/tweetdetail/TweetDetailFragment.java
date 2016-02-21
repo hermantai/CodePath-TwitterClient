@@ -18,6 +18,7 @@ import com.bumptech.glide.Glide;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.helpers.LogUtil;
+import com.codepath.apps.mysimpletweets.models.ExtendedEntities;
 import com.codepath.apps.mysimpletweets.models.Media;
 import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.VideoInfo;
@@ -71,47 +72,52 @@ public class TweetDetailFragment extends Fragment {
         List<String> urlsToBeRemoved = new ArrayList<>();
 
         // add all photos and videos as needed
-        for (Media media : tweet.getExtendedEntities().getMedia()) {
-            if (media.getType().equals("photo")) {
-                ImageView imageView = new ImageView(activity);
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT);
-                params.setMargins(0, 10, 0, 0);
-                imageView.setAdjustViewBounds(true);
-                imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                imageView.setLayoutParams(params);
-                mLlTweetDetailPictures.addView(imageView);
+        ExtendedEntities extendedEntities = tweet.getExtendedEntities();
+        if (extendedEntities != null) {
+            for (Media media : tweet.getExtendedEntities().getMedia()) {
+                if (media.getType().equals("photo")) {
+                    ImageView imageView = new ImageView(activity);
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT);
+                    params.setMargins(0, 10, 0, 0);
+                    imageView.setAdjustViewBounds(true);
+                    imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                    imageView.setLayoutParams(params);
+                    mLlTweetDetailPictures.addView(imageView);
 
-                Glide.with(activity)
-                        .load(media.getMediaUrl())
-                        .into(imageView);
+                    Glide.with(activity)
+                            .load(media.getMediaUrl())
+                            .into(imageView);
 
-                urlsToBeRemoved.add(media.getUrl());
-            } else if (media.getType().equals("video")) {
-                // We assume there is only at most one video
-                VideoInfo videoInfo = media.getVideoInfo();
-                boolean done = false;
-                // First, find if there is application/x-mpegURL, use that one,
-                // if not, use the first one.
-                for (VideoInfoVariant variant : videoInfo.getVariants()) {
-                    if (variant.getContentType().equals("application/x-mpegURL")) {
+                    urlsToBeRemoved.add(media.getUrl());
+                } else if (media.getType().equals("video")) {
+                    // We assume there is only at most one video
+                    VideoInfo videoInfo = media.getVideoInfo();
+                    boolean done = false;
+                    // First, find if there is application/x-mpegURL, use that one,
+                    // if not, use the first one.
+                    for (VideoInfoVariant variant : videoInfo.getVariants()) {
+                        if (variant.getContentType().equals("application/x-mpegURL")) {
+                            mVvTweetDetailVideo.setVideoURI(Uri.parse(variant.getUrl()));
+                            //mVvTweetDetailVideo.setMediaController(new MediaController(activity));
+                            mVvTweetDetailVideo.requestFocus();
+                            mVvTweetDetailVideo.start();
+                            mVvTweetDetailVideo.setVisibility(View.VISIBLE);
+                            done = true;
+                            break;
+                        }
+                    }
+                    if (!done) {
+                        VideoInfoVariant variant = videoInfo.getVariants().get(1);
                         mVvTweetDetailVideo.setVideoURI(Uri.parse(variant.getUrl()));
-                        //mVvTweetDetailVideo.setMediaController(new MediaController(activity));
+                        mVvTweetDetailVideo.setMediaController(new MediaController(activity));
                         mVvTweetDetailVideo.requestFocus();
                         mVvTweetDetailVideo.start();
-                        done = true;
-                        break;
+                        mVvTweetDetailVideo.setVisibility(View.VISIBLE);
                     }
+                    urlsToBeRemoved.add(media.getUrl());
                 }
-                if (!done) {
-                    VideoInfoVariant variant = videoInfo.getVariants().get(1);
-                    mVvTweetDetailVideo.setVideoURI(Uri.parse(variant.getUrl()));
-                    mVvTweetDetailVideo.setMediaController(new MediaController(activity));
-                    mVvTweetDetailVideo.requestFocus();
-                    mVvTweetDetailVideo.start();
-                }
-                urlsToBeRemoved.add(media.getUrl());
             }
         }
 

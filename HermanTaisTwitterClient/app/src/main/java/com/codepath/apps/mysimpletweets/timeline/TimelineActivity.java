@@ -172,8 +172,11 @@ public class TimelineActivity extends AppCompatActivity
                 android.R.color.holo_red_light);
 
         mClient = SimpleTweetsApplication.getRestClient();
-        fetchNewerTweets();
-        refreshUser();
+
+        if (NetworkUtil.isNetworkAvailable(this)) {
+            fetchNewerTweets();
+            refreshUser();
+        }
     }
 
     /**

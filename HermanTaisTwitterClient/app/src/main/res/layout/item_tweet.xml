@@ -60,6 +60,7 @@
         android:layout_toEndOf="@+id/ivItemTweetProfileImage"
         android:layout_marginTop="5dp"
         android:textColor="@android:color/black"
+        android:autoLink="all"
         tools:text="New Text"
         />
 </RelativeLayout>
