@@ -1,5 +1,6 @@
 package com.codepath.apps.mysimpletweets.tweetdetail;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -7,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +21,8 @@ import android.widget.VideoView;
 import com.bumptech.glide.Glide;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
+import com.codepath.apps.mysimpletweets.SimpleTweetsApplication;
+import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.helpers.LogUtil;
 import com.codepath.apps.mysimpletweets.models.ExtendedEntities;
 import com.codepath.apps.mysimpletweets.models.Media;
@@ -27,6 +31,12 @@ import com.codepath.apps.mysimpletweets.models.VideoInfo;
 import com.codepath.apps.mysimpletweets.models.VideoInfoVariant;
 import com.codepath.apps.mysimpletweets.reply.ReplyFragment;
 import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
+import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+import org.apache.http.Header;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +57,10 @@ public class TweetDetailFragment extends Fragment {
     @Bind(R.id.llTweetDetailRetweetLikeCounts) LinearLayout mLlTweetDetailRetweetLikeCounts;
     @Bind(R.id.tvTweetDetailRetweetLikeCounts) TextView mTvTweetDetailRetweetLikeCounts;
     @Bind(R.id.ivTweetDetailReply) ImageView mIvTweetDetailReply;
+    @Bind(R.id.ivTweetDetailFavorited) ImageView mIvTweetDetailFavorited;
+
+    private TwitterClient mClient;
+    private Tweet mTweet;
 
     public static TweetDetailFragment newInstance(Tweet tweet) {
         Bundle bundle = new Bundle();
@@ -58,6 +72,12 @@ public class TweetDetailFragment extends Fragment {
         return frag;
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mClient = SimpleTweetsApplication.getRestClient();
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
@@ -65,23 +85,23 @@ public class TweetDetailFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_tweet_detail, container, false);
         ButterKnife.bind(this, v);
 
-        final Tweet tweet = getArguments().getParcelable(ARG_TWEET);
-        LogUtil.d(Common.INFO_TAG, "Detail for tweet: " + tweet);
+        mTweet = getArguments().getParcelable(ARG_TWEET);
+        LogUtil.d(Common.INFO_TAG, "Detail for tweet: " + mTweet);
         final FragmentActivity activity = getActivity();
 
         Glide.with(activity)
-                .load(tweet.getUser().getProfileImageUrl())
+                .load(mTweet.getUser().getProfileImageUrl())
                 .into(mIvTweetDetailProfileImage);
-        mTvTweetDetailUserName.setText(tweet.getUser().getName());
-        mTvTweetDetailUserScreenName.setText("@" + tweet.getUser().getScreenName());
-        mTvTweetDetailBody.setText(tweet.getText());
+        mTvTweetDetailUserName.setText(mTweet.getUser().getName());
+        mTvTweetDetailUserScreenName.setText("@" + mTweet.getUser().getScreenName());
+        mTvTweetDetailBody.setText(mTweet.getText());
 
         List<String> urlsToBeRemoved = new ArrayList<>();
 
         // add all photos and videos as needed
-        ExtendedEntities extendedEntities = tweet.getExtendedEntities();
+        ExtendedEntities extendedEntities = mTweet.getExtendedEntities();
         if (extendedEntities != null) {
-            for (Media media : tweet.getExtendedEntities().getMedia()) {
+            for (Media media : mTweet.getExtendedEntities().getMedia()) {
                 if (media.getType().equals("photo")) {
                     ImageView imageView = new ImageView(activity);
                     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -129,46 +149,33 @@ public class TweetDetailFragment extends Fragment {
         }
 
         if (!urlsToBeRemoved.isEmpty()) {
-            String s = tweet.getText();
+            String s = mTweet.getText();
             for (String toBeRemoved: urlsToBeRemoved) {
                 s = s.replace(toBeRemoved, "");
             }
             mTvTweetDetailBody.setText(s);
         }
 
-        mTvTweetDetailCreatedAt.setText(tweet.getCreatedAt().toString());
+        mTvTweetDetailCreatedAt.setText(mTweet.getCreatedAt().toString());
 
-        StringBuilder retweetLikeCountsSb = new StringBuilder();
-        if (tweet.getRetweetCount() > 0) {
-            retweetLikeCountsSb.append("<font color=\"black\">");
-            retweetLikeCountsSb.append(tweet.getRetweetCount());
-            retweetLikeCountsSb.append("</font>");
-            retweetLikeCountsSb.append(" RETWEETS");
-        }
-        if (tweet.getFavoriteCount() > 0) {
-            if (retweetLikeCountsSb.length() > 0) {
-                retweetLikeCountsSb.append(" ");
-            }
-            retweetLikeCountsSb.append("<font color=\"black\">");
-            retweetLikeCountsSb.append(tweet.getFavoriteCount());
-            retweetLikeCountsSb.append("</font>");
-            retweetLikeCountsSb.append(" LIKES");
-        }
-
-        if (retweetLikeCountsSb.length() > 0) {
-            mLlTweetDetailRetweetLikeCounts.setVisibility(View.VISIBLE);
-            mTvTweetDetailRetweetLikeCounts.setText(Html.fromHtml(retweetLikeCountsSb.toString()));
-        }
+        setUpRetweetLikeCounts();
 
         mIvTweetDetailReply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ReplyFragment frag = ReplyFragment.newInstance(
-                        SimpleTweetsPrefs.getUser(activity), tweet);
+                        SimpleTweetsPrefs.getUser(activity), mTweet);
                 FragmentManager fm = activity.getSupportFragmentManager();
                 frag.show(fm, "Reply");
             }
         });
+
+        if (mTweet.isFavorited()) {
+            setLiked(mIvTweetDetailFavorited);
+        } else {
+            setNotLiked(mIvTweetDetailFavorited);
+
+        }
 
         return v;
     }
@@ -177,5 +184,129 @@ public class TweetDetailFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         ButterKnife.unbind(this);
+    }
+
+    private void setUpRetweetLikeCounts() {
+        StringBuilder retweetLikeCountsSb = new StringBuilder();
+        if (mTweet.getRetweetCount() > 0) {
+            retweetLikeCountsSb.append("<font color=\"black\">");
+            retweetLikeCountsSb.append(mTweet.getRetweetCount());
+            retweetLikeCountsSb.append("</font>");
+            retweetLikeCountsSb.append(" RETWEETS");
+        }
+        if (mTweet.getFavoriteCount() > 0) {
+            if (retweetLikeCountsSb.length() > 0) {
+                retweetLikeCountsSb.append(" ");
+            }
+            retweetLikeCountsSb.append("<font color=\"black\">");
+            retweetLikeCountsSb.append(mTweet.getFavoriteCount());
+            retweetLikeCountsSb.append("</font>");
+            retweetLikeCountsSb.append(" LIKES");
+        }
+
+        if (retweetLikeCountsSb.length() > 0) {
+            mLlTweetDetailRetweetLikeCounts.setVisibility(View.VISIBLE);
+            mTvTweetDetailRetweetLikeCounts.setText(Html.fromHtml(retweetLikeCountsSb.toString()));
+        } else {
+            mLlTweetDetailRetweetLikeCounts.setVisibility(View.GONE);
+        }
+    }
+
+    private void setNotLiked(ImageView imageView) {
+        imageView.setImageResource(R.drawable.ic_like);
+        mIvTweetDetailFavorited.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Make sure next time we refresh this tweet, in case we cannot make it after the
+                // like.
+                Context context = TweetDetailFragment.this.getActivity();
+                if (SimpleTweetsPrefs.getNewestFetchedId(context) > mTweet.getUid()) {
+                    SimpleTweetsPrefs.setNewestFetchedId(context, mTweet.getUid());
+                }
+
+                mClient.like(mTweet.getUid(), new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(
+                            int statusCode, Header[] headers, JSONObject response) {
+                        Log.d(Common.INFO_TAG, "Liked tweet: " + mTweet);
+                        setLiked(mIvTweetDetailFavorited);
+                        refreshTweet();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, Throwable throwable,
+                                          JSONObject errorResponse) {
+                        Context context = getActivity();
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error liking the tweet",
+                                throwable);
+                    }
+                });
+            }
+        });
+    }
+
+    public void setLiked(ImageView imageView) {
+        imageView.setImageResource(R.drawable.ic_liked);
+        mIvTweetDetailFavorited.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Make sure next time we refresh this tweet, in case we cannot make it after the
+                // unlike.
+                Context context = TweetDetailFragment.this.getActivity();
+                if (SimpleTweetsPrefs.getNewestFetchedId(context) > mTweet.getUid()) {
+                    SimpleTweetsPrefs.setNewestFetchedId(context, mTweet.getUid());
+                }
+
+                mClient.unlike(mTweet.getUid(), new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(
+                            int statusCode, Header[] headers, JSONObject response) {
+                        Log.d(Common.INFO_TAG, "Unliked tweet: " + mTweet);
+                        setNotLiked(mIvTweetDetailFavorited);
+                        refreshTweet();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, Throwable throwable,
+                                          JSONObject errorResponse) {
+                        Context context = getActivity();
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error unliking the tweet",
+                                throwable);
+                    }
+                });
+            }
+        });
+    }
+
+    private void refreshTweet() {
+        mClient.lookup(mTweet.getUid(), new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                Log.d(Common.INFO_TAG, "New tweet: " + response.toString());
+                List<Tweet> tweets = Tweet.fromJsonArray(response);
+                if (!tweets.isEmpty()) {
+                    mTweet = tweets.get(0);
+                    mTweet.save();
+                    setUpRetweetLikeCounts();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable,
+                                  JSONObject errorResponse) {
+                Context context = getActivity();
+                ErrorHandling.handleError(
+                        context,
+                        Common.INFO_TAG,
+                        "Error refreshing the tweet: " + throwable.getLocalizedMessage(),
+                        throwable);
+            }
+        });
     }
 }

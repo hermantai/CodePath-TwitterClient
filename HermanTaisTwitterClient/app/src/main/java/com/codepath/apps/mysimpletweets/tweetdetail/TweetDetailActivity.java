@@ -25,8 +25,6 @@ public class TweetDetailActivity extends SingleFragmentActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.tbActivityFragment);
         setSupportActionBar(toolbar);
-
-        //toolbar.setTitle("Tweet");
     }
 
     @Override
