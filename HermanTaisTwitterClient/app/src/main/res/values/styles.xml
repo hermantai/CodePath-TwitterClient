@@ -48,4 +48,9 @@
         <item name="android:textSize">18sp</item>
     </style>
 
+    <!-- Theme for Full screen video -->
+    <style name="FullScreenVideoTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
 </resources>

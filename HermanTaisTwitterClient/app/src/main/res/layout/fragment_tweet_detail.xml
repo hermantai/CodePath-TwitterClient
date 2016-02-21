@@ -71,13 +71,23 @@
 
         </LinearLayout>
         <!-- video -->
-        <VideoView
-            android:id="@+id/vvTweetDetailVideo"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            />
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <VideoView
+                android:id="@+id/vvTweetDetailVideo"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                />
+            <View
+                android:id="@+id/vFullScreenVideoTrigger"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                />
+        </FrameLayout>
         <!-- timestamps and location -->
         <TextView
             android:id="@+id/tvTweetDetailCreatedAt"

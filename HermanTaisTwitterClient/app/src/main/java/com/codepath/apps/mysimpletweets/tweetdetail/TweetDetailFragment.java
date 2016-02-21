@@ -34,6 +34,7 @@ import com.codepath.apps.mysimpletweets.models.VideoInfo;
 import com.codepath.apps.mysimpletweets.models.VideoInfoVariant;
 import com.codepath.apps.mysimpletweets.reply.ReplyFragment;
 import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
+import com.codepath.apps.mysimpletweets.showvideo.VideoActivity;
 import com.codepath.apps.mysimpletweets.timeline.TimelineActivity;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -70,6 +71,7 @@ public class TweetDetailFragment extends Fragment {
     @Bind(R.id.ivTweetDetailFavorited) ImageView mIvTweetDetailFavorited;
     @Bind(R.id.ivTweetDetailRetweeted) ImageView mIvTweetDetailRetweeted;
     @Bind(R.id.llTweetDetailReplies) LinearLayout mLlTweetDetailReplies;
+    @Bind(R.id.vFullScreenVideoTrigger) View mVFullScreenVideoTrigger;
 
     private TwitterClient mClient;
     private Tweet mTweet;
@@ -144,28 +146,39 @@ public class TweetDetailFragment extends Fragment {
                 } else if (media.getType().equals("video")) {
                     // We assume there is only at most one video
                     VideoInfo videoInfo = media.getVideoInfo();
-                    boolean done = false;
+                    String videoUrl = null;
                     // First, find if there is application/x-mpegURL, use that one,
                     // if not, use the first one.
                     for (VideoInfoVariant variant : videoInfo.getVariants()) {
                         if (variant.getContentType().equals("application/x-mpegURL")) {
-                            mVvTweetDetailVideo.setVideoURI(Uri.parse(variant.getUrl()));
+                            videoUrl = variant.getUrl();
+                            mVvTweetDetailVideo.setVideoURI(Uri.parse(videoUrl));
                             //mVvTweetDetailVideo.setMediaController(new MediaController(activity));
                             mVvTweetDetailVideo.requestFocus();
                             mVvTweetDetailVideo.start();
                             mVvTweetDetailVideo.setVisibility(View.VISIBLE);
-                            done = true;
+                            mVFullScreenVideoTrigger.setVisibility(View.VISIBLE);
                             break;
                         }
                     }
-                    if (!done) {
+                    if (videoUrl == null) {
                         VideoInfoVariant variant = videoInfo.getVariants().get(1);
-                        mVvTweetDetailVideo.setVideoURI(Uri.parse(variant.getUrl()));
+                        videoUrl = variant.getUrl();
+                        mVvTweetDetailVideo.setVideoURI(Uri.parse(videoUrl));
                         mVvTweetDetailVideo.setMediaController(new MediaController(activity));
                         mVvTweetDetailVideo.requestFocus();
                         mVvTweetDetailVideo.start();
                         mVvTweetDetailVideo.setVisibility(View.VISIBLE);
+                        mVFullScreenVideoTrigger.setVisibility(View.VISIBLE);
                     }
+                    final String _videoUrl = videoUrl;
+                    mVFullScreenVideoTrigger.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent i = VideoActivity.newIntent(activity, _videoUrl);
+                            startActivity(i);
+                        }
+                    });
                     urlsToBeRemoved.add(media.getUrl());
                 }
             }
