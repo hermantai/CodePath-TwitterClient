@@ -53,7 +53,7 @@ The following **additional** features are implemented:
   * Use cursor for RecyclerView, so the app does not use memory to store the tweets any more.
   * A user can like/unlike a tweet on detail view.
   * A user can retweet/unretweet a tweet that does not belong to me on detail view.
-  * A user can press the "show more" item to fill the gap exists in the
+  * A user can press the "show more" button to fill the gap exists in the
     timeline. The gap exists because when we fetch new tweets, the oldest of
     them may still be much newer than the tweets we have before.
   * Show my replies to tweets (not sure how to show replies from others)
