@@ -3,8 +3,8 @@ package com.codepath.apps.mysimpletweets.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.codepath.apps.mysimpletweets.Common;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.json.JSONObject;
 
@@ -41,16 +41,12 @@ import org.json.JSONObject;
  */
 public class User implements Parcelable {
     private String mName;
-    private long mId;
+    private long mUid;
     private String mScreenName;
     private String mProfileImageUrl;
 
     public static User fromJson(JSONObject jsonObject) {
-        Gson gson = new GsonBuilder()
-                // "Tue Aug 28 21:16:23 +0000 2012"
-                .setDateFormat("E MMM dd HH:mm:ss Z yyyy")
-                .setFieldNamingStrategy(new AndroidFieldNamingStrategy())
-                .create();
+        Gson gson = Common.getGson();
         User user = gson.fromJson(jsonObject.toString(), User.class);
         return user;
     }
@@ -59,8 +55,8 @@ public class User implements Parcelable {
         return mName;
     }
 
-    public long getId() {
-        return mId;
+    public long getUid() {
+        return mUid;
     }
 
     public String getScreenName() {
@@ -79,7 +75,7 @@ public class User implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(this.mName);
-        dest.writeLong(this.mId);
+        dest.writeLong(this.mUid);
         dest.writeString(this.mScreenName);
         dest.writeString(this.mProfileImageUrl);
     }
@@ -89,7 +85,7 @@ public class User implements Parcelable {
 
     protected User(Parcel in) {
         this.mName = in.readString();
-        this.mId = in.readLong();
+        this.mUid = in.readLong();
         this.mScreenName = in.readString();
         this.mProfileImageUrl = in.readString();
     }

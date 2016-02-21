@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -35,7 +34,7 @@ public class ReplyFragment extends DialogFragment {
 
     @Bind(R.id.tvReplyDescription) TextView mTvReplyDescription;
     @Bind(R.id.etReplyTweet) EditText mEtReplyTweet;
-    @Bind(R.id.btnReplySend) Button mBtnReplySend;
+    @Bind(R.id.tvReplySend) TextView mTvReplySend;
 
     private TwitterClient mClient;
     private Tweet mTweet;
@@ -71,15 +70,15 @@ public class ReplyFragment extends DialogFragment {
         mEtReplyTweet.setText(prefilled);
         mEtReplyTweet.setSelection(prefilled.length());
 
-        mBtnReplySend.setOnClickListener(new View.OnClickListener() {
+        mTvReplySend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mBtnReplySend.setEnabled(false);
+                mTvReplySend.setEnabled(false);
                 CharSequence tweet = mEtReplyTweet.getText();
                 mClient.replyStatus(tweet, mTweet.getUid(), new JsonHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                        mBtnReplySend.setEnabled(true);
+                        mTvReplySend.setEnabled(true);
 
                         Tweet newTweet = Tweet.fromJson(response);
                         Log.d(Common.INFO_TAG, "New reply tweet: " + response.toString());
@@ -95,7 +94,7 @@ public class ReplyFragment extends DialogFragment {
                     @Override
                     public void onFailure(int statusCode, Header[] headers, Throwable throwable,
                                           JSONObject errorResponse) {
-                        mBtnReplySend.setEnabled(true);
+                        mTvReplySend.setEnabled(true);
 
                         Context context = getActivity();
                         ErrorHandling.handleError(

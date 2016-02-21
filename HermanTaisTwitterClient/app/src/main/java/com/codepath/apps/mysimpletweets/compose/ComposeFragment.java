@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.codepath.apps.mysimpletweets.Common;
@@ -30,7 +29,7 @@ public class ComposeFragment extends DialogFragment {
     private static final String ARG_USER = "user";
 
     @Bind(R.id.etComposeTweet) TextView mEtComposeTweet;
-    @Bind(R.id.btnComposeSend) Button mBtnComposeSend;
+    @Bind(R.id.tvComposeSend) TextView mTvComposeSend;
 
     private TwitterClient mClient;
     private OnNewTweetHandler mOnNewTweetHandler;
@@ -63,15 +62,15 @@ public class ComposeFragment extends DialogFragment {
         View v = inflater.inflate(R.layout.fragment_compose, container, false);
         ButterKnife.bind(this, v);
 
-        mBtnComposeSend.setOnClickListener(new View.OnClickListener() {
+        mTvComposeSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mBtnComposeSend.setEnabled(false);
+                mTvComposeSend.setEnabled(false);
                 CharSequence tweet = mEtComposeTweet.getText();
                 mClient.updateStatus(tweet, new JsonHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                        mBtnComposeSend.setEnabled(true);
+                        mTvComposeSend.setEnabled(true);
 
                         Tweet newTweet = Tweet.fromJson(response);
                         Log.d(Common.INFO_TAG, "New tweet: " + response.toString());
@@ -87,7 +86,7 @@ public class ComposeFragment extends DialogFragment {
                     @Override
                     public void onFailure(int statusCode, Header[] headers, Throwable throwable,
                                           JSONObject errorResponse) {
-                        mBtnComposeSend.setEnabled(true);
+                        mTvComposeSend.setEnabled(true);
 
                         Context context = getActivity();
                         ErrorHandling.handleError(

@@ -29,6 +29,7 @@ import com.codepath.apps.mysimpletweets.helpers.LogUtil;
 import com.codepath.apps.mysimpletweets.models.ExtendedEntities;
 import com.codepath.apps.mysimpletweets.models.Media;
 import com.codepath.apps.mysimpletweets.models.Tweet;
+import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.models.VideoInfo;
 import com.codepath.apps.mysimpletweets.models.VideoInfoVariant;
 import com.codepath.apps.mysimpletweets.reply.ReplyFragment;
@@ -199,10 +200,15 @@ public class TweetDetailFragment extends Fragment {
             setNotLiked(mIvTweetDetailFavorited);
         }
 
-        if (mTweet.isRetweeted()) {
-            setRetweeted(mIvTweetDetailRetweeted);
+        User user = SimpleTweetsPrefs.getUser(activity);
+        if (user != null && user.getUid() == mTweet.getUser().getUid()) {
+            mIvTweetDetailRetweeted.setImageResource(R.drawable.ic_unretweetable);
         } else {
-            setNotRetweeted(mIvTweetDetailRetweeted);
+            if (mTweet.isRetweeted()) {
+                setRetweeted(mIvTweetDetailRetweeted);
+            } else {
+                setNotRetweeted(mIvTweetDetailRetweeted);
+            }
         }
 
         setUpReplies();
