@@ -27,6 +27,7 @@ import android.widget.Toast;
 import com.activeandroid.Cache;
 import com.activeandroid.query.Select;
 import com.bumptech.glide.Glide;
+import com.codepath.apps.mysimpletweets.BuildConfig;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.SimpleTweetsApplication;
@@ -132,6 +133,11 @@ public class TimelineActivity extends AppCompatActivity
         });
 
         mTweetsAdapter = new TweetsAdapter();
+        int itemCount = mTweetsAdapter.getItemCount();
+        if (itemCount != 0) {
+            TwitterClientPrefs.setNewestFetchedId(
+                    this, mTweetsAdapter.getItem(itemCount - 1).getUid());
+        }
         rvTweets.setAdapter(mTweetsAdapter);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         rvTweets.setLayoutManager(layoutManager);
@@ -156,11 +162,7 @@ public class TimelineActivity extends AppCompatActivity
         mSwipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                if (mTweetsAdapter.getItemCount() > 0) {
-                    fetchNewerTweets(mTweetsAdapter.getItem(0).getUid());
-                } else {
-                    fetchNewerTweets(0);
-                }
+                fetchNewerTweets();
                 refreshUser();
             }
         });
@@ -170,61 +172,58 @@ public class TimelineActivity extends AppCompatActivity
                 android.R.color.holo_red_light);
 
         mClient = SimpleTweetsApplication.getRestClient();
-        fetchNewerTweets(0);
+        fetchNewerTweets();
         refreshUser();
     }
 
     /**
      * Send an API request to get new tweets from the timeline json
      * Fill the list by creating the tweet objects from the json
-     * @param since_id The ID of the oldest tweets to retrieve, exclusive. Use 0 if getting the
-     *                 newest tweets.
      */
-    private void fetchNewerTweets(final long since_id) {
+    private void fetchNewerTweets() {
+        long since_id = TwitterClientPrefs.getNewestFetchedId(this);
+        if (since_id != 0) {
+            // We want to fetch some overlapped items to check if there is a gap between the newest
+            // existing item and the new items we are fetching.
+            since_id -= 1;
+        }
+
         mClient.getHomeTimeline(
-                25,
+                10,
                 since_id,
                 0,
                 new JsonHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                        LogUtil.d(Common.INFO_TAG, response.toString());
+                        if (BuildConfig.DEBUG) {
+                            LogUtil.d(Common.INFO_TAG, "fetchOlderTweets: " + response.toString());
+                        }
                         mSwipeContainer.setRefreshing(false);
 
                         // Deserialize JSON
                         // Create models
                         // Note that response sorts tweets in descending IDs
                         List<Tweet> newTweets = Tweet.fromJsonArray(response);
-                        // Load the model data into ListView
-                        if (!newTweets.isEmpty()
-                                && mTweetsAdapter.getItemCount() != 0) {
-                            // Is the oldest new tweet is newer than newest tweet
-                            // we have so far, in terms of uid of tweets
-                            if (newTweets.get(newTweets.size() - 1).getUid() >
-                                    mTweetsAdapter.getItem(0).getUid()) {
-                                // There is a gap between the newTweets and what we have so far
-                                newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
-                            } else {
-                                // Overlapped with what we have and we assume there is no gap on
-                                // the timeline or no reduction on the gap already exist
-                                // in the timeline produced by this fetch,
-                                // because we assume that any new fetches cannot fetch more items
-                                // which are older than mTweetsAdapter.getItem(0),
-                                // than the fetches that fetched mTweetsAdapter.getItem(0)
-                                long newestExistingId = mTweetsAdapter.getItem(0).getUid();
 
-                                int oldestNewItemToBeInserted = newTweets.size() - 1;
-                                for (oldestNewItemToBeInserted -= 1;
-                                     oldestNewItemToBeInserted >= 0
-                                             && newTweets.get(oldestNewItemToBeInserted).getUid()
-                                                    <= newestExistingId;
-                                     oldestNewItemToBeInserted--);
-                                if (oldestNewItemToBeInserted >= 0) {
-                                    newTweets = newTweets.subList(0, oldestNewItemToBeInserted + 1);
-                                }
-                            }
+                        // We always fetch new items using the last fetched id - 1 as the
+                        // since_id, so we support to get our previous fetched tweet back if
+                        // there are not that many new items, and thus no gap between the last
+                        // fetch and this fetch.. However, if the oldest tweet of the newTweets has
+                        // ID newer than last fetched ID, we may have a gap, so we need to take
+                        // care of this.
+                        if (mTweetsAdapter.getItemCount() != 0
+                                && !newTweets.isEmpty()
+                                && newTweets.get(newTweets.size() - 1).getUid()
+                                        > TwitterClientPrefs.getNewestFetchedId(
+                                                TimelineActivity.this)) {
+                            newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
                         }
+                        // The adapter takes care of de-dedup
                         mTweetsAdapter.addAllToFront(newTweets);
+                        if (!newTweets.isEmpty()) {
+                            TwitterClientPrefs.setNewestFetchedId(TimelineActivity.this, newTweets
+                                    .get(0).getUid());
+                        }
                     }
 
                     @Override
@@ -241,7 +240,7 @@ public class TimelineActivity extends AppCompatActivity
                         showSnackBarForNetworkError(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                fetchNewerTweets(since_id);
+                                fetchNewerTweets();
                             }
                         });
                     }
@@ -266,7 +265,7 @@ public class TimelineActivity extends AppCompatActivity
                         showSnackBarForNetworkError(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                fetchNewerTweets(since_id);
+                                fetchNewerTweets();
                             }
                         });
                     }
@@ -281,14 +280,15 @@ public class TimelineActivity extends AppCompatActivity
      */
     private void fetchOlderTweets(final long max_id) {
         mClient.getHomeTimeline(
-                25,
+                10,
                 0,
                 max_id,
                 new JsonHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-
-                        LogUtil.d(Common.INFO_TAG, response.toString());
+                        if (BuildConfig.DEBUG) {
+                            LogUtil.d(Common.INFO_TAG, "fetchOlderTweets: " + response.toString());
+                        }
 
                         // Deserialize JSON
                         // Create models
@@ -394,7 +394,6 @@ public class TimelineActivity extends AppCompatActivity
 
     @Override
     public void onNewTweet(Tweet newTweet) {
-        newTweet.setHasMoreBefore(true);
         mTweetsAdapter.addToFront(newTweet);
         rvTweets.smoothScrollToPosition(0);
     }
