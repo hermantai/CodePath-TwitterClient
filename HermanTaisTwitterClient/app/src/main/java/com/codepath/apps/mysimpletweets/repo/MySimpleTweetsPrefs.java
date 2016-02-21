@@ -6,7 +6,7 @@ import android.preference.PreferenceManager;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.models.User;
 
-public class TwitterClientPrefs {
+public class MySimpleTweetsPrefs {
     private static final String PREF_USER = "user";
     private static final String PREF_NEWEST_FETCHED_ID = "newest_fetched_id";
 
