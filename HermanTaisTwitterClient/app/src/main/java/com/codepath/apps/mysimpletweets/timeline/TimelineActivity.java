@@ -20,6 +20,7 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -181,7 +182,6 @@ public class TimelineActivity extends AppCompatActivity
 
     /**
      * Send an API request to get new tweets from the timeline json
-     * Fill the list by creating the tweet objects from the json
      */
     private void fetchNewerTweets() {
         long since_id = SimpleTweetsPrefs.getNewestFetchedId(this);
@@ -277,7 +277,6 @@ public class TimelineActivity extends AppCompatActivity
 
     /**
      * Send an API request to get old tweets from the timeline json
-     * Fill the list by creating the tweet objects from the json
      *
      * @param max_id The ID of the newest tweets to retrieve, exclusive.
      */
@@ -295,9 +294,8 @@ public class TimelineActivity extends AppCompatActivity
 
                         // Deserialize JSON
                         // Create models
-                        // Load the model data into ListView
                         List<Tweet> newTweets = Tweet.fromJsonArray(response);
-                        mTweetsAdapter.addAll(newTweets);
+                        mTweetsAdapter.appendAll(newTweets);
 
                         if (mStartedLoadingMore) {
                             mStartedLoadingMore = false;
@@ -358,6 +356,68 @@ public class TimelineActivity extends AppCompatActivity
                 });
     }
 
+    /**
+     * Send an API request to get old tweets from the timeline json to fill the gap
+     *
+     * @param tweetWithGapEarlier the tweet that has a potential gap between this tweet and the
+     *                            tweet before this tweet (by tweet id, Uid)
+     * @param since_id The ID of the tweet that is right before tweetWithGapEarlier
+     */
+    private void fetchOlderTweetsForTimelineGap(
+            final Tweet tweetWithGapEarlier,
+            final long since_id) {
+        mClient.getHomeTimeline(
+                10,
+                since_id - 1,  // This means we should get the prev tweet back if there is no gap
+                tweetWithGapEarlier.getUid(),
+                new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                        if (BuildConfig.DEBUG) {
+                            LogUtil.d(Common.INFO_TAG, "fetchOlderTweets: " + response.toString());
+                        }
+
+                        // Deserialize JSON
+                        // Create models
+                        List<Tweet> newTweets = Tweet.fromJsonArray(response);
+                        if (!newTweets.isEmpty()
+                                && newTweets.get(newTweets.size() - 1).getUid() > since_id) {
+                            newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
+                        }
+                        tweetWithGapEarlier.setHasMoreBefore(false);
+                        newTweets.add(tweetWithGapEarlier);
+                        mTweetsAdapter.addAll(newTweets);
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String
+                            responseString, Throwable throwable) {
+                        ErrorHandling.handleError(
+                                TimelineActivity.this,
+                                Common.INFO_TAG,
+                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                throwable);
+                        LogUtil.d(Common.INFO_TAG, responseString);
+                    }
+
+                    @Override
+                    public void onFailure(
+                            int statusCode,
+                            Header[] headers,
+                            Throwable throwable,
+                            JSONObject errorResponse) {
+                        ErrorHandling.handleError(
+                                TimelineActivity.this,
+                                Common.INFO_TAG,
+                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                throwable);
+                        LogUtil.d(
+                                Common.INFO_TAG,
+                                errorResponse == null ? "" : errorResponse.toString());
+                    }
+                });
+    }
+
     private void refreshUser() {
         mClient.getCurrentUser(new JsonHttpResponseHandler() {
             @Override
@@ -402,13 +462,15 @@ public class TimelineActivity extends AppCompatActivity
     }
 
     private void showSnackBarForNetworkError(View.OnClickListener listener) {
-        Snackbar.make(
-                rvTweets,
-                "Network error!",
-                Snackbar.LENGTH_INDEFINITE)
-                .setAction("Reload", listener)
-                .setActionTextColor(Color.YELLOW)
-                .show();
+        if(!NetworkUtil.isNetworkAvailable(this)) {
+            Snackbar.make(
+                    rvTweets,
+                    "Network error!",
+                    Snackbar.LENGTH_INDEFINITE)
+                    .setAction("Reload", listener)
+                    .setActionTextColor(Color.YELLOW)
+                    .show();
+        }
     }
 
     class TweetViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
@@ -417,6 +479,7 @@ public class TimelineActivity extends AppCompatActivity
         @Bind(R.id.tvItemTweetUserScreenName) TextView mTvItemTweetUserScreenName;
         @Bind(R.id.tvItemTweetBody) TextView mTvItemTweetBody;
         @Bind(R.id.tvItemTweetCreatedAt) TextView mTvItemTweetCreatedAt;
+        @Bind(R.id.btnItemTweetShowMore) Button mBtnItemTweetShowMore;
 
         View.OnClickListener mTvItemTweetCreatedAtOnClickListener1 = new View.OnClickListener() {
             @Override
@@ -484,6 +547,34 @@ public class TimelineActivity extends AppCompatActivity
                     .into(mIvItemTweetProfileImage);
 
             mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener1);
+
+            if (mTweet.isHasMoreBefore()) {
+                final Tweet prevTweet =
+                        new Select()
+                                .from(Tweet.class)
+                                .where("m_uid < ?", mTweet.getUid())
+                                .orderBy("m_uid desc")
+                                .limit(1)
+                                .executeSingle();
+                if (prevTweet == null) {
+                    // Very unlikely to happen
+                    mBtnItemTweetShowMore.setVisibility(View.GONE);
+                    mTweet.setHasMoreBefore(false);
+                    mTweetsAdapter.updateTweet(mTweet);
+                } else {
+                    mBtnItemTweetShowMore.setVisibility(View.VISIBLE);
+                    mBtnItemTweetShowMore.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (prevTweet != null) {
+                                fetchOlderTweetsForTimelineGap(mTweet, prevTweet.getUid());
+                            }
+                        }
+                    });
+                }
+            } else {
+                mBtnItemTweetShowMore.setVisibility(View.GONE);
+            }
         }
 
         @Override
@@ -518,11 +609,17 @@ public class TimelineActivity extends AppCompatActivity
             return mCursor.getCount();
         }
 
-        public void addAll(List<Tweet> tweets) {
+        public void appendAll(List<Tweet> tweets) {
             int oldLen = getItemCount();
             Tweet.saveAll(tweets);
             mCursor = fetchTweetsCursor();
             notifyItemRangeInserted(oldLen, tweets.size());
+        }
+
+        public void addAll(List<Tweet> tweets) {
+            Tweet.saveAll(tweets);
+            mCursor = fetchTweetsCursor();
+            notifyDataSetChanged();
         }
 
         public void addToFront(Tweet tweet) {
@@ -542,6 +639,20 @@ public class TimelineActivity extends AppCompatActivity
             Tweet tweet = new Tweet();
             tweet.loadFromCursor(mCursor);
             return tweet;
+        }
+
+        public void updateTweet(Tweet tweet) {
+            tweet.save();
+            int p = mCursor.getPosition();
+            if (getItem(p).getUid() == tweet.getUid()) {
+                // This is the most common case: the tweet to be updated is the one we just returned
+                mCursor = fetchTweetsCursor();
+                notifyItemChanged(p);
+            } else {
+                // We don't know where this tweet is, so just update everything
+                mCursor = fetchTweetsCursor();
+                notifyDataSetChanged();
+            }
         }
 
         private Cursor fetchTweetsCursor() {
