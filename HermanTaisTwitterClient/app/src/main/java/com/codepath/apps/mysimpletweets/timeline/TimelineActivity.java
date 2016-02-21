@@ -25,8 +25,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.activeandroid.Cache;
-import com.activeandroid.query.Select;
 import com.bumptech.glide.Glide;
 import com.codepath.apps.mysimpletweets.BuildConfig;
 import com.codepath.apps.mysimpletweets.Common;
@@ -110,7 +108,6 @@ public class TimelineActivity extends AppCompatActivity
         toolbar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //layoutManager.scrollToPositionWithOffset(0, 0);
                 rvTweets.smoothScrollToPosition(0);
             }
         });
@@ -571,13 +568,7 @@ public class TimelineActivity extends AppCompatActivity
             mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener1);
 
             if (mTweet.isHasMoreBefore()) {
-                final Tweet prevTweet =
-                        new Select()
-                                .from(Tweet.class)
-                                .where("m_uid < ?", mTweet.getUid())
-                                .orderBy("m_uid desc")
-                                .limit(1)
-                                .executeSingle();
+                final Tweet prevTweet = Tweet.fetchTweetBefore(mTweet);
                 if (prevTweet == null) {
                     // Very unlikely to happen
                     mBtnItemTweetShowMore.setVisibility(View.GONE);
@@ -610,7 +601,7 @@ public class TimelineActivity extends AppCompatActivity
         private Cursor mCursor;
 
         public TweetsAdapter() {
-            mCursor = fetchTweetsCursor();
+            mCursor = Tweet.fetchNonRepliesTweetsCursor();
         }
 
         @Override
@@ -634,25 +625,25 @@ public class TimelineActivity extends AppCompatActivity
         public void appendAll(List<Tweet> tweets) {
             int oldLen = getItemCount();
             Tweet.saveAll(tweets);
-            mCursor = fetchTweetsCursor();
+            mCursor = Tweet.fetchNonRepliesTweetsCursor();
             notifyItemRangeInserted(oldLen, tweets.size());
         }
 
         public void addAll(List<Tweet> tweets) {
             Tweet.saveAll(tweets);
-            mCursor = fetchTweetsCursor();
+            mCursor = Tweet.fetchNonRepliesTweetsCursor();
             notifyDataSetChanged();
         }
 
         public void addToFront(Tweet tweet) {
             tweet.save();
-            mCursor = fetchTweetsCursor();
+            mCursor = Tweet.fetchNonRepliesTweetsCursor();
             notifyItemInserted(0);
         }
 
         public void addAllToFront(List<Tweet> tweets) {
             Tweet.saveAll(tweets);
-            mCursor = fetchTweetsCursor();
+            mCursor = Tweet.fetchNonRepliesTweetsCursor();
             notifyDataSetChanged();
         }
 
@@ -665,7 +656,7 @@ public class TimelineActivity extends AppCompatActivity
 
         public void updateTweetAtPos(int position, Tweet tweet) {
             tweet.save();
-            mCursor = fetchTweetsCursor();
+            mCursor = Tweet.fetchNonRepliesTweetsCursor();
             notifyItemChanged(position);
         }
 
@@ -674,18 +665,13 @@ public class TimelineActivity extends AppCompatActivity
             int p = mCursor.getPosition();
             if (getItem(p).getUid() == tweet.getUid()) {
                 // This is the most common case: the tweet to be updated is the one we just returned
-                mCursor = fetchTweetsCursor();
+                mCursor = Tweet.fetchNonRepliesTweetsCursor();
                 notifyItemChanged(p);
             } else {
                 // We don't know where this tweet is, so just update everything
-                mCursor = fetchTweetsCursor();
+                mCursor = Tweet.fetchNonRepliesTweetsCursor();
                 notifyDataSetChanged();
             }
-        }
-
-        private Cursor fetchTweetsCursor() {
-            String resultRecords = new Select().from(Tweet.class).orderBy("m_uid desc").toSql();
-            return Cache.openDatabase().rawQuery(resultRecords, new String[]{});
         }
     }
 }

@@ -90,13 +90,16 @@ package com.codepath.apps.mysimpletweets.models;
   }
 */
 
+import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.activeandroid.ActiveAndroid;
+import com.activeandroid.Cache;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
 import com.codepath.apps.mysimpletweets.Common;
 import com.google.gson.Gson;
 
@@ -115,34 +118,37 @@ import java.util.List;
 public class Tweet extends Model implements Parcelable {
     // list out the attributes
 
-    @Column(name = "m_text")
+    @Column(name = "text")
     private String mText;
-    @Column(name = "m_uid",
+    @Column(name = "uid",
             index = true,
             unique = true,
             onUniqueConflict = Column.ConflictAction.REPLACE)
     private long mUid;  // unique id for the tweet
-    @Column(name = "m_user")
+    @Column(name = "user")
     private User mUser;
-    @Column(name = "m_created_at")
+    @Column(name = "created_at")
     private Date mCreatedAt;
-    @Column(name = "m_favorite_count")
+    @Column(name = "favorite_count")
     private long mFavoriteCount;
-    @Column(name = "m_retweet_count")
+    @Column(name = "retweet_count")
     private long mRetweetCount;
-    @Column(name = "m_favorited")
+    @Column(name = "favorited")
     private boolean mFavorited;
-    @Column(name = "m_retweeted")
+    @Column(name = "retweeted")
     private boolean mRetweeted;
 
     // Use ExtendedEntitiesTypeSerializer to serialize this
-    @Column(name = "m_extended_entities")
+    @Column(name = "extended_entities")
     private ExtendedEntities mExtendedEntities;
     // Indicates there are potentially more tweets before this tweet (in terms of id) that they may
     // not be in the cache. This flag should not be in the model but I am lazy to create another
     // proxy model for persistence.
-    @Column(name = "m_has_more_before")
+    @Column(name = "has_more_before")
     private boolean mHasMoreBefore = false;
+
+    @Column(name = "in_reply_to_status_id", index = true)
+    private long mInReplyToStatusId;
 
     public static Tweet fromJson(JSONObject jsonObject) {
         Gson gson = Common.getGson();
@@ -206,6 +212,10 @@ public class Tweet extends Model implements Parcelable {
         this.mHasMoreBefore = hasMoreBefore;
     }
 
+    public long getInReplyToStatusId() {
+        return mInReplyToStatusId;
+    }
+
     public static ArrayList<Tweet> fromJsonArray(JSONArray jsonArray) {
         ArrayList<Tweet> tweets = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++ ) {
@@ -228,6 +238,32 @@ public class Tweet extends Model implements Parcelable {
     public Tweet() {
     }
 
+    public static Cursor fetchNonRepliesTweetsCursor() {
+        String resultRecords = new Select()
+                .from(Tweet.class)
+                .where("in_reply_to_status_id != 0")
+                .orderBy("uid desc")
+                .toSql();
+        return Cache.openDatabase().rawQuery(resultRecords, new String[]{});
+    }
+
+    public static List<Tweet> fetchRepliesTweets(long inReplyToStatusId) {
+        return new Select()
+                .from(Tweet.class)
+                .where("in_reply_to_status_id = ?", inReplyToStatusId)
+                .orderBy("uid desc")
+                .execute();
+    }
+
+    public static Tweet fetchTweetBefore(Tweet tweet) {
+        return new Select()
+                .from(Tweet.class)
+                .where("uid < ?", tweet.getUid())
+                .orderBy("uid desc")
+                .limit(1)
+                .executeSingle();
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -245,6 +281,7 @@ public class Tweet extends Model implements Parcelable {
         dest.writeByte(mRetweeted ? (byte) 1 : (byte) 0);
         dest.writeParcelable(this.mExtendedEntities, 0);
         dest.writeByte(mHasMoreBefore ? (byte) 1 : (byte) 0);
+        dest.writeLong(this.mInReplyToStatusId);
     }
 
     protected Tweet(Parcel in) {
@@ -259,6 +296,7 @@ public class Tweet extends Model implements Parcelable {
         this.mRetweeted = in.readByte() != 0;
         this.mExtendedEntities = in.readParcelable(ExtendedEntities.class.getClassLoader());
         this.mHasMoreBefore = in.readByte() != 0;
+        this.mInReplyToStatusId = in.readLong();
     }
 
     public static final Creator<Tweet> CREATOR = new Creator<Tweet>() {
