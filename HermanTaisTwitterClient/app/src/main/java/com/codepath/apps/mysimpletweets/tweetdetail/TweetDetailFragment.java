@@ -1,10 +1,11 @@
 package com.codepath.apps.mysimpletweets.tweetdetail;
 
-import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +25,8 @@ import com.codepath.apps.mysimpletweets.models.Media;
 import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.VideoInfo;
 import com.codepath.apps.mysimpletweets.models.VideoInfoVariant;
+import com.codepath.apps.mysimpletweets.reply.ReplyFragment;
+import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +46,7 @@ public class TweetDetailFragment extends Fragment {
     @Bind(R.id.tvTweetDetailCreatedAt) TextView mTvTweetDetailCreatedAt;
     @Bind(R.id.llTweetDetailRetweetLikeCounts) LinearLayout mLlTweetDetailRetweetLikeCounts;
     @Bind(R.id.tvTweetDetailRetweetLikeCounts) TextView mTvTweetDetailRetweetLikeCounts;
+    @Bind(R.id.ivTweetDetailReply) ImageView mIvTweetDetailReply;
 
     public static TweetDetailFragment newInstance(Tweet tweet) {
         Bundle bundle = new Bundle();
@@ -61,9 +65,9 @@ public class TweetDetailFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_tweet_detail, container, false);
         ButterKnife.bind(this, v);
 
-        Tweet tweet = getArguments().getParcelable(ARG_TWEET);
+        final Tweet tweet = getArguments().getParcelable(ARG_TWEET);
         LogUtil.d(Common.INFO_TAG, "Detail for tweet: " + tweet);
-        Activity activity = getActivity();
+        final FragmentActivity activity = getActivity();
 
         Glide.with(activity)
                 .load(tweet.getUser().getProfileImageUrl())
@@ -155,6 +159,16 @@ public class TweetDetailFragment extends Fragment {
             mLlTweetDetailRetweetLikeCounts.setVisibility(View.VISIBLE);
             mTvTweetDetailRetweetLikeCounts.setText(Html.fromHtml(retweetLikeCountsSb.toString()));
         }
+
+        mIvTweetDetailReply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ReplyFragment frag = ReplyFragment.newInstance(
+                        SimpleTweetsPrefs.getUser(activity), tweet);
+                FragmentManager fm = activity.getSupportFragmentManager();
+                frag.show(fm, "Reply");
+            }
+        });
 
         return v;
     }

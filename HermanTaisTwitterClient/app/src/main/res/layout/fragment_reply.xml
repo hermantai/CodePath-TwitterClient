@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    >
+    <TextView
+        android:id="@+id/tvReplyDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+    <!-- The hint is set to a space, so it does not move the hint from EditText to the
+    TextInputLayout -->
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/tilReplyTweet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:counterEnabled="true"
+        app:counterMaxLength="140"
+        app:counterTextAppearance="@style/counterText"
+        app:counterOverflowTextAppearance="@style/counterOverride"
+        android:hint=" "
+        >
+        <EditText
+            android:id="@+id/etReplyTweet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:gravity="top"
+            android:padding="8dp"
+            android:inputType="textMultiLine"
+            android:lines="5"
+            android:background="@drawable/rectangle_background_compose"
+            android:maxLength="140"
+            />
+    </android.support.design.widget.TextInputLayout>
+    <Button
+        android:id="@+id/btnReplySend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tilReplyTweet"
+        android:layout_alignParentRight="true"
+        android:text="@string/reply"/>
+</RelativeLayout>
