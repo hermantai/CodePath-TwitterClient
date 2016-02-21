@@ -1,6 +1,8 @@
 package com.codepath.apps.mysimpletweets.tweetdetail;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -46,6 +48,10 @@ import butterknife.ButterKnife;
 
 public class TweetDetailFragment extends Fragment {
     private static final String ARG_TWEET = "tweet";
+    private static final String ARG_TWEET_POS = "tweet_position";
+
+    private static final String EXTRA_TWEET = "com.codepath.apps.mysimpletweets.tweet";
+    private static final String EXTRA_TWEET_POS = "com.codepath.apps.mysimpletweets.tweet_position";
 
     @Bind(R.id.ivTweetDetailProfileImage) ImageView mIvTweetDetailProfileImage;
     @Bind(R.id.tvTweetDetailUserName) TextView mTvTweetDetailUserName;
@@ -62,10 +68,12 @@ public class TweetDetailFragment extends Fragment {
 
     private TwitterClient mClient;
     private Tweet mTweet;
+    private int mTweetPos;
 
-    public static TweetDetailFragment newInstance(Tweet tweet) {
+    public static TweetDetailFragment newInstance(int tweetPosition, Tweet tweet) {
         Bundle bundle = new Bundle();
         bundle.putParcelable(ARG_TWEET, tweet);
+        bundle.putInt(ARG_TWEET_POS, tweetPosition);
 
         TweetDetailFragment frag = new TweetDetailFragment();
         frag.setArguments(bundle);
@@ -73,10 +81,20 @@ public class TweetDetailFragment extends Fragment {
         return frag;
     }
 
+    public static Tweet getUpdatedTweet(Intent data) {
+        return data.getParcelableExtra(EXTRA_TWEET);
+    }
+
+    public static int getUpdatedTweetPosition(Intent data) {
+        return data.getIntExtra(EXTRA_TWEET_POS, -1);
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mClient = SimpleTweetsApplication.getRestClient();
+        mTweet = getArguments().getParcelable(ARG_TWEET);
+        mTweetPos = getArguments().getInt(ARG_TWEET_POS);
     }
 
     @Nullable
@@ -86,7 +104,6 @@ public class TweetDetailFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_tweet_detail, container, false);
         ButterKnife.bind(this, v);
 
-        mTweet = getArguments().getParcelable(ARG_TWEET);
         LogUtil.d(Common.INFO_TAG, "Detail for tweet: " + mTweet);
         final FragmentActivity activity = getActivity();
 
@@ -373,6 +390,12 @@ public class TweetDetailFragment extends Fragment {
                     mTweet.save();
                     setUpRetweetLikeCounts();
                 }
+                Intent i = new Intent();
+                i.putExtra(EXTRA_TWEET, mTweet);
+                i.putExtra(EXTRA_TWEET_POS, mTweetPos);
+                TweetDetailFragment.this.getActivity().setResult(
+                        Activity.RESULT_OK,
+                        i);
             }
 
             @Override

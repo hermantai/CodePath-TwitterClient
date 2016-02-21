@@ -11,10 +11,12 @@ import com.codepath.apps.mysimpletweets.models.Tweet;
 
 public class TweetDetailActivity extends SingleFragmentActivity {
     private static final String EXTRA_TWEET = "com.codepath.apps.mysimpletweets.tweet";
+    private static final String EXTRA_TWEET_POS = "com.codepath.apps.mysimpletweets.tweet_position";
 
-    public static Intent newIntent(Context context, Tweet tweet) {
+    public static Intent newIntent(Context context, int tweetPosition, Tweet tweet) {
         Intent i = new Intent(context, TweetDetailActivity.class);
         i.putExtra(EXTRA_TWEET, tweet);
+        i.putExtra(EXTRA_TWEET_POS, tweetPosition);
 
         return i;
     }
@@ -29,6 +31,16 @@ public class TweetDetailActivity extends SingleFragmentActivity {
 
     @Override
     protected Fragment createFragment() {
-        return TweetDetailFragment.newInstance((Tweet) getIntent().getParcelableExtra(EXTRA_TWEET));
+        return TweetDetailFragment.newInstance(
+                getIntent().getIntExtra(EXTRA_TWEET_POS, 0),
+                (Tweet) getIntent().getParcelableExtra(EXTRA_TWEET));
+    }
+
+    public static Tweet getUpdatedTweet(Intent data) {
+        return TweetDetailFragment.getUpdatedTweet(data);
+    }
+
+    public static int getUpdatedTweetPosition(Intent data) {
+        return TweetDetailFragment.getUpdatedTweetPosition(data);
     }
 }

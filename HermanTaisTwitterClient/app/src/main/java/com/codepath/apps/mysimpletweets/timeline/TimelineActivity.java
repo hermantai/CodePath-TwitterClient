@@ -60,6 +60,7 @@ public class TimelineActivity extends AppCompatActivity
         implements ComposeFragment.OnNewTweetHandler{
     private static final SimpleDateFormat sDateFormat = new SimpleDateFormat(
             "E MMM dd HH:mm:ss Z yyyy");
+    private static final int REQUEST_DETAIL = 0;
 
     @Bind(R.id.rvTweets) RecyclerView rvTweets;
     @Bind(R.id.fab) FloatingActionButton mFab;
@@ -473,6 +474,25 @@ public class TimelineActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_DETAIL && resultCode == RESULT_OK) {
+            if (data != null) {
+                Tweet updatedTweet = TweetDetailActivity.getUpdatedTweet(data);
+                int position = TweetDetailActivity.getUpdatedTweetPosition(data);
+                Log.d(
+                        Common.INFO_TAG,
+                        String.format(
+                                "Updated tweet: %s, updated pos: %d",
+                                updatedTweet,
+                                position));
+                mTweetsAdapter.updateTweetAtPos(position, updatedTweet);
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
     class TweetViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         @Bind(R.id.ivItemTweetProfileImage) ImageView mIvItemTweetProfileImage;
         @Bind(R.id.tvItemTweetUserName) TextView mTvItemTweetUserName;
@@ -505,6 +525,7 @@ public class TimelineActivity extends AppCompatActivity
         };
 
         private Tweet mTweet;
+        private int mTweetPos;
 
         private TweetViewHolder(View itemView) {
             super(itemView);
@@ -514,8 +535,9 @@ public class TimelineActivity extends AppCompatActivity
             mTvItemTweetBody.setOnClickListener(this);
         }
 
-        private void bindTweet(Context context, Tweet tweet) {
+        private void bindTweet(Context context, int tweetPosition, Tweet tweet) {
             mTweet = tweet;
+            mTweetPos = tweetPosition;
 
             mTvItemTweetUserName.setText(tweet.getUser().getName());
             mTvItemTweetUserScreenName.setText("@" + tweet.getUser().getScreenName());
@@ -579,8 +601,8 @@ public class TimelineActivity extends AppCompatActivity
 
         @Override
         public void onClick(View v) {
-            Intent i = TweetDetailActivity.newIntent(TimelineActivity.this, mTweet);
-            startActivity(i);
+            Intent i = TweetDetailActivity.newIntent(TimelineActivity.this, mTweetPos, mTweet);
+            startActivityForResult(i, REQUEST_DETAIL);
         }
     }
 
@@ -601,7 +623,7 @@ public class TimelineActivity extends AppCompatActivity
         @Override
         public void onBindViewHolder(TweetViewHolder holder, int position) {
             Tweet tweet = getItem(position);;
-            holder.bindTweet(TimelineActivity.this, tweet);
+            holder.bindTweet(TimelineActivity.this, position, tweet);
         }
 
         @Override
@@ -639,6 +661,12 @@ public class TimelineActivity extends AppCompatActivity
             Tweet tweet = new Tweet();
             tweet.loadFromCursor(mCursor);
             return tweet;
+        }
+
+        public void updateTweetAtPos(int position, Tweet tweet) {
+            tweet.save();
+            mCursor = fetchTweetsCursor();
+            notifyItemChanged(position);
         }
 
         public void updateTweet(Tweet tweet) {
