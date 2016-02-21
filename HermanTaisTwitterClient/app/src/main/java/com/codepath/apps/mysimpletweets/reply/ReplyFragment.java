@@ -1,5 +1,6 @@
 package com.codepath.apps.mysimpletweets.reply;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -82,7 +83,12 @@ public class ReplyFragment extends DialogFragment {
 
                         Tweet newTweet = Tweet.fromJson(response);
                         Log.d(Common.INFO_TAG, "New reply tweet: " + response.toString());
+                        newTweet.save();
 
+                        getTargetFragment().onActivityResult(
+                                getTargetRequestCode(),
+                                Activity.RESULT_OK,
+                                null);
                         ReplyFragment.this.dismiss();
                     }
 

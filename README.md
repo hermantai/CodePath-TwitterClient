@@ -2,7 +2,7 @@
 
 **Simple Tweets** is an android app that allows a user to view his Twitter timeline and post a new tweet. The app utilizes [Twitter REST API](https://dev.twitter.com/rest/public).
 
-Time spent: **25.5** hours spent in total
+Time spent: **26** hours spent in total
 
 ## User Stories
 
@@ -56,6 +56,7 @@ The following **additional** features are implemented:
   * A user can press the "show more" item to fill the gap exists in the
     timeline. The gap exists because when we fetch new tweets, the oldest of
     them may still be much newer than the tweets we have before.
+  * Show my replies to tweets (not sure how to show replies from others)
 
 ## Video Walkthrough 
 

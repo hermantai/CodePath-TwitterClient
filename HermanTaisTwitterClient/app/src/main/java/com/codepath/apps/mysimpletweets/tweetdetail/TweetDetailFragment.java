@@ -33,6 +33,7 @@ import com.codepath.apps.mysimpletweets.models.VideoInfo;
 import com.codepath.apps.mysimpletweets.models.VideoInfoVariant;
 import com.codepath.apps.mysimpletweets.reply.ReplyFragment;
 import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
+import com.codepath.apps.mysimpletweets.timeline.TimelineActivity;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
@@ -53,6 +54,8 @@ public class TweetDetailFragment extends Fragment {
     private static final String EXTRA_TWEET = "com.codepath.apps.mysimpletweets.tweet";
     private static final String EXTRA_TWEET_POS = "com.codepath.apps.mysimpletweets.tweet_position";
 
+    private static final int REQUEST_REPLY = 0;
+
     @Bind(R.id.ivTweetDetailProfileImage) ImageView mIvTweetDetailProfileImage;
     @Bind(R.id.tvTweetDetailUserName) TextView mTvTweetDetailUserName;
     @Bind(R.id.tvTweetDetailUserScreenName) TextView mTvTweetDetailUserScreenName;
@@ -65,6 +68,7 @@ public class TweetDetailFragment extends Fragment {
     @Bind(R.id.ivTweetDetailReply) ImageView mIvTweetDetailReply;
     @Bind(R.id.ivTweetDetailFavorited) ImageView mIvTweetDetailFavorited;
     @Bind(R.id.ivTweetDetailRetweeted) ImageView mIvTweetDetailRetweeted;
+    @Bind(R.id.llTweetDetailReplies) LinearLayout mLlTweetDetailReplies;
 
     private TwitterClient mClient;
     private Tweet mTweet;
@@ -183,6 +187,7 @@ public class TweetDetailFragment extends Fragment {
             public void onClick(View v) {
                 ReplyFragment frag = ReplyFragment.newInstance(
                         SimpleTweetsPrefs.getUser(activity), mTweet);
+                frag.setTargetFragment(TweetDetailFragment.this, REQUEST_REPLY);
                 FragmentManager fm = activity.getSupportFragmentManager();
                 frag.show(fm, "Reply");
             }
@@ -200,6 +205,8 @@ public class TweetDetailFragment extends Fragment {
             setNotRetweeted(mIvTweetDetailRetweeted);
         }
 
+        setUpReplies();
+
         return v;
     }
 
@@ -207,6 +214,15 @@ public class TweetDetailFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         ButterKnife.unbind(this);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_REPLY && resultCode == Activity.RESULT_OK) {
+            setUpReplies();
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     private void setUpRetweetLikeCounts() {
@@ -232,6 +248,25 @@ public class TweetDetailFragment extends Fragment {
             mTvTweetDetailRetweetLikeCounts.setText(Html.fromHtml(retweetLikeCountsSb.toString()));
         } else {
             mLlTweetDetailRetweetLikeCounts.setVisibility(View.GONE);
+        }
+    }
+
+    private void setUpReplies() {
+        mLlTweetDetailReplies.removeAllViews();
+
+        List<Tweet> replies = Tweet.fetchRepliesTweets(mTweet.getUid());
+
+        Activity activity = getActivity();
+        if (!replies.isEmpty()) {
+            for (int i = 0; i < replies.size(); i++) {
+                LayoutInflater inflater = LayoutInflater.from(getActivity());
+                View v = inflater.inflate(R.layout.item_tweet, mLlTweetDetailReplies, false);
+
+                new TimelineActivity.TweetViewHolder(v, activity, null)
+                        .bindTweet(activity, i, replies.get(i), false);
+
+                mLlTweetDetailReplies.addView(v);
+            }
         }
     }
 

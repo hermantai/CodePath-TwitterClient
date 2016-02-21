@@ -241,7 +241,7 @@ public class Tweet extends Model implements Parcelable {
     public static Cursor fetchNonRepliesTweetsCursor() {
         String resultRecords = new Select()
                 .from(Tweet.class)
-                .where("in_reply_to_status_id != 0")
+                .where("in_reply_to_status_id == 0")
                 .orderBy("uid desc")
                 .toSql();
         return Cache.openDatabase().rawQuery(resultRecords, new String[]{});

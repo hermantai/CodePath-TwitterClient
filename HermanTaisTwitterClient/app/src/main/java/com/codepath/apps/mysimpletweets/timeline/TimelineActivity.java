@@ -1,5 +1,6 @@
 package com.codepath.apps.mysimpletweets.timeline;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -490,13 +491,17 @@ public class TimelineActivity extends AppCompatActivity
         }
     }
 
-    class TweetViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public static class TweetViewHolder extends RecyclerView.ViewHolder implements View
+            .OnClickListener{
         @Bind(R.id.ivItemTweetProfileImage) ImageView mIvItemTweetProfileImage;
         @Bind(R.id.tvItemTweetUserName) TextView mTvItemTweetUserName;
         @Bind(R.id.tvItemTweetUserScreenName) TextView mTvItemTweetUserScreenName;
         @Bind(R.id.tvItemTweetBody) TextView mTvItemTweetBody;
         @Bind(R.id.tvItemTweetCreatedAt) TextView mTvItemTweetCreatedAt;
         @Bind(R.id.btnItemTweetShowMore) Button mBtnItemTweetShowMore;
+
+        private Activity mActivity;
+        private TweetsAdapter mTweetsAdapter;
 
         View.OnClickListener mTvItemTweetCreatedAtOnClickListener1 = new View.OnClickListener() {
             @Override
@@ -524,15 +529,21 @@ public class TimelineActivity extends AppCompatActivity
         private Tweet mTweet;
         private int mTweetPos;
 
-        private TweetViewHolder(View itemView) {
+        public TweetViewHolder(
+                View itemView,
+                Activity activity,
+                TweetsAdapter tweetsAdapter) {
             super(itemView);
+            mActivity = activity;
+            mTweetsAdapter = tweetsAdapter;
+
             ButterKnife.bind(this, itemView);
 
             itemView.setOnClickListener(this);
             mTvItemTweetBody.setOnClickListener(this);
         }
 
-        private void bindTweet(Context context, int tweetPosition, Tweet tweet) {
+        public void bindTweet(Context context, int tweetPosition, Tweet tweet, boolean showMore) {
             mTweet = tweet;
             mTweetPos = tweetPosition;
 
@@ -567,33 +578,37 @@ public class TimelineActivity extends AppCompatActivity
 
             mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener1);
 
-            if (mTweet.isHasMoreBefore()) {
-                final Tweet prevTweet = Tweet.fetchTweetBefore(mTweet);
-                if (prevTweet == null) {
-                    // Very unlikely to happen
-                    mBtnItemTweetShowMore.setVisibility(View.GONE);
-                    mTweet.setHasMoreBefore(false);
-                    mTweetsAdapter.updateTweet(mTweet);
-                } else {
-                    mBtnItemTweetShowMore.setVisibility(View.VISIBLE);
-                    mBtnItemTweetShowMore.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (prevTweet != null) {
-                                fetchOlderTweetsForTimelineGap(mTweet, prevTweet.getUid());
+            if (showMore) {
+                if (mTweet.isHasMoreBefore()) {
+                    final Tweet prevTweet = Tweet.fetchTweetBefore(mTweet);
+                    if (prevTweet == null) {
+                        // Very unlikely to happen
+                        mBtnItemTweetShowMore.setVisibility(View.GONE);
+                        mTweet.setHasMoreBefore(false);
+                        mTweetsAdapter.updateTweet(mTweet);
+                    } else {
+                        mBtnItemTweetShowMore.setVisibility(View.VISIBLE);
+                        mBtnItemTweetShowMore.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (prevTweet != null) {
+                                    ((TimelineActivity) mActivity)
+                                            .fetchOlderTweetsForTimelineGap(mTweet,
+                                            prevTweet.getUid());
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
+                } else {
+                    mBtnItemTweetShowMore.setVisibility(View.GONE);
                 }
-            } else {
-                mBtnItemTweetShowMore.setVisibility(View.GONE);
             }
         }
 
         @Override
         public void onClick(View v) {
-            Intent i = TweetDetailActivity.newIntent(TimelineActivity.this, mTweetPos, mTweet);
-            startActivityForResult(i, REQUEST_DETAIL);
+            Intent i = TweetDetailActivity.newIntent(mActivity, mTweetPos, mTweet);
+            mActivity.startActivityForResult(i, REQUEST_DETAIL);
         }
     }
 
@@ -607,14 +622,14 @@ public class TimelineActivity extends AppCompatActivity
         @Override
         public TweetViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View v = getLayoutInflater().inflate(R.layout.item_tweet, parent, false);
-            TweetViewHolder vh = new TweetViewHolder(v);
+            TweetViewHolder vh = new TweetViewHolder(v, TimelineActivity.this, this);
             return vh;
         }
 
         @Override
         public void onBindViewHolder(TweetViewHolder holder, int position) {
             Tweet tweet = getItem(position);;
-            holder.bindTweet(TimelineActivity.this, position, tweet);
+            holder.bindTweet(TimelineActivity.this, position, tweet, true);
         }
 
         @Override
