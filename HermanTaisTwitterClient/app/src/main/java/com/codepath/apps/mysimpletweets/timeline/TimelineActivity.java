@@ -448,6 +448,7 @@ public class TimelineActivity extends AppCompatActivity
             ButterKnife.bind(this, itemView);
 
             itemView.setOnClickListener(this);
+            mTvItemTweetBody.setOnClickListener(this);
         }
 
         private void bindTweet(Context context, Tweet tweet) {
