@@ -58,6 +58,7 @@ public class TweetDetailFragment extends Fragment {
     @Bind(R.id.tvTweetDetailRetweetLikeCounts) TextView mTvTweetDetailRetweetLikeCounts;
     @Bind(R.id.ivTweetDetailReply) ImageView mIvTweetDetailReply;
     @Bind(R.id.ivTweetDetailFavorited) ImageView mIvTweetDetailFavorited;
+    @Bind(R.id.ivTweetDetailRetweeted) ImageView mIvTweetDetailRetweeted;
 
     private TwitterClient mClient;
     private Tweet mTweet;
@@ -174,7 +175,12 @@ public class TweetDetailFragment extends Fragment {
             setLiked(mIvTweetDetailFavorited);
         } else {
             setNotLiked(mIvTweetDetailFavorited);
+        }
 
+        if (mTweet.isRetweeted()) {
+            setRetweeted(mIvTweetDetailRetweeted);
+        } else {
+            setNotRetweeted(mIvTweetDetailRetweeted);
         }
 
         return v;
@@ -212,9 +218,45 @@ public class TweetDetailFragment extends Fragment {
         }
     }
 
-    private void setNotLiked(ImageView imageView) {
+    private void setLiked(final ImageView imageView) {
+        imageView.setImageResource(R.drawable.ic_liked);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Make sure next time we refresh this tweet, in case we cannot make it after the
+                // unlike.
+                Context context = TweetDetailFragment.this.getActivity();
+                if (SimpleTweetsPrefs.getNewestFetchedId(context) > mTweet.getUid()) {
+                    SimpleTweetsPrefs.setNewestFetchedId(context, mTweet.getUid());
+                }
+
+                mClient.unlike(mTweet.getUid(), new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(
+                            int statusCode, Header[] headers, JSONObject response) {
+                        Log.d(Common.INFO_TAG, "Unliked tweet: " + mTweet);
+                        setNotLiked(imageView);
+                        refreshTweet();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, Throwable throwable,
+                                          JSONObject errorResponse) {
+                        Context context = getActivity();
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error unliking the tweet",
+                                throwable);
+                    }
+                });
+            }
+        });
+    }
+
+    private void setNotLiked(final ImageView imageView) {
         imageView.setImageResource(R.drawable.ic_like);
-        mIvTweetDetailFavorited.setOnClickListener(new View.OnClickListener() {
+        imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
@@ -229,7 +271,7 @@ public class TweetDetailFragment extends Fragment {
                     public void onSuccess(
                             int statusCode, Header[] headers, JSONObject response) {
                         Log.d(Common.INFO_TAG, "Liked tweet: " + mTweet);
-                        setLiked(mIvTweetDetailFavorited);
+                        setLiked(imageView);
                         refreshTweet();
                     }
 
@@ -248,24 +290,24 @@ public class TweetDetailFragment extends Fragment {
         });
     }
 
-    public void setLiked(ImageView imageView) {
-        imageView.setImageResource(R.drawable.ic_liked);
-        mIvTweetDetailFavorited.setOnClickListener(new View.OnClickListener() {
+    private void setRetweeted(final ImageView imageView) {
+        imageView.setImageResource(R.drawable.ic_retweeted);
+        imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
-                // unlike.
+                // unretweet.
                 Context context = TweetDetailFragment.this.getActivity();
                 if (SimpleTweetsPrefs.getNewestFetchedId(context) > mTweet.getUid()) {
                     SimpleTweetsPrefs.setNewestFetchedId(context, mTweet.getUid());
                 }
 
-                mClient.unlike(mTweet.getUid(), new JsonHttpResponseHandler() {
+                mClient.unretweet(mTweet.getUid(), new JsonHttpResponseHandler() {
                     @Override
                     public void onSuccess(
                             int statusCode, Header[] headers, JSONObject response) {
-                        Log.d(Common.INFO_TAG, "Unliked tweet: " + mTweet);
-                        setNotLiked(mIvTweetDetailFavorited);
+                        Log.d(Common.INFO_TAG, "Unretweeted tweet: " + mTweet);
+                        setNotRetweeted(imageView);
                         refreshTweet();
                     }
 
@@ -276,7 +318,43 @@ public class TweetDetailFragment extends Fragment {
                         ErrorHandling.handleError(
                                 context,
                                 Common.INFO_TAG,
-                                "Error unliking the tweet",
+                                "Error unretweeting the tweet",
+                                throwable);
+                    }
+                });
+            }
+        });
+    }
+
+    private void setNotRetweeted(final ImageView imageView) {
+        imageView.setImageResource(R.drawable.ic_retweet);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Make sure next time we refresh this tweet, in case we cannot make it after the
+                // retweet.
+                Context context = TweetDetailFragment.this.getActivity();
+                if (SimpleTweetsPrefs.getNewestFetchedId(context) > mTweet.getUid()) {
+                    SimpleTweetsPrefs.setNewestFetchedId(context, mTweet.getUid());
+                }
+
+                mClient.retweet(mTweet.getUid(), new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(
+                            int statusCode, Header[] headers, JSONObject response) {
+                        Log.d(Common.INFO_TAG, "Retweeted tweet: " + mTweet);
+                        setRetweeted(imageView);
+                        refreshTweet();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, Throwable throwable,
+                                          JSONObject errorResponse) {
+                        Context context = getActivity();
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error retweeting the tweet",
                                 throwable);
                     }
                 });

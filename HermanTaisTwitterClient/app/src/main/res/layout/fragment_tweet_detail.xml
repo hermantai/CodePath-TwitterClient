@@ -133,6 +133,7 @@
                 android:layout_weight="1"
                 />
             <ImageView
+                android:id="@+id/ivTweetDetailRetweeted"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:src="@drawable/ic_retweet"
