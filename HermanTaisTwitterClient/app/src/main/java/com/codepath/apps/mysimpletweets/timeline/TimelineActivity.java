@@ -39,7 +39,7 @@ import com.codepath.apps.mysimpletweets.helpers.StringUtil;
 import com.codepath.apps.mysimpletweets.models.Media;
 import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.User;
-import com.codepath.apps.mysimpletweets.repo.MySimpleTweetsPrefs;
+import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
 import com.codepath.apps.mysimpletweets.tweetdetail.TweetDetailActivity;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -116,7 +116,7 @@ public class TimelineActivity extends AppCompatActivity
         mFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                User user = MySimpleTweetsPrefs.getUser(TimelineActivity.this);
+                User user = SimpleTweetsPrefs.getUser(TimelineActivity.this);
                 if (user == null) {
                     Toast.makeText(
                             TimelineActivity.this,
@@ -135,7 +135,7 @@ public class TimelineActivity extends AppCompatActivity
         mTweetsAdapter = new TweetsAdapter();
         int itemCount = mTweetsAdapter.getItemCount();
         if (itemCount != 0) {
-            MySimpleTweetsPrefs.setNewestFetchedId(
+            SimpleTweetsPrefs.setNewestFetchedId(
                     this, mTweetsAdapter.getItem(itemCount - 1).getUid());
         }
         rvTweets.setAdapter(mTweetsAdapter);
@@ -184,7 +184,7 @@ public class TimelineActivity extends AppCompatActivity
      * Fill the list by creating the tweet objects from the json
      */
     private void fetchNewerTweets() {
-        long since_id = MySimpleTweetsPrefs.getNewestFetchedId(this);
+        long since_id = SimpleTweetsPrefs.getNewestFetchedId(this);
         if (since_id != 0) {
             // We want to fetch some overlapped items to check if there is a gap between the newest
             // existing item and the new items we are fetching.
@@ -217,14 +217,14 @@ public class TimelineActivity extends AppCompatActivity
                         if (mTweetsAdapter.getItemCount() != 0
                                 && !newTweets.isEmpty()
                                 && newTweets.get(newTweets.size() - 1).getUid()
-                                        > MySimpleTweetsPrefs.getNewestFetchedId(
+                                        > SimpleTweetsPrefs.getNewestFetchedId(
                                 TimelineActivity.this)) {
                             newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
                         }
                         // The adapter takes care of de-dedup
                         mTweetsAdapter.addAllToFront(newTweets);
                         if (!newTweets.isEmpty()) {
-                            MySimpleTweetsPrefs.setNewestFetchedId(TimelineActivity.this, newTweets
+                            SimpleTweetsPrefs.setNewestFetchedId(TimelineActivity.this, newTweets
                                     .get(0).getUid());
                         }
                     }
@@ -362,7 +362,7 @@ public class TimelineActivity extends AppCompatActivity
         mClient.getCurrentUser(new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                MySimpleTweetsPrefs.setUser(TimelineActivity.this, User.fromJson(response));
+                SimpleTweetsPrefs.setUser(TimelineActivity.this, User.fromJson(response));
             }
 
             @Override
