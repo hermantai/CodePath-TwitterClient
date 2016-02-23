@@ -288,7 +288,7 @@ public class TweetDetailFragment extends Fragment {
                                         getActivity(),
                                         position,
                                         tweet);
-                                activity.startActivityForResult(i, REQUEST_DETAIL);
+                                startActivityForResult(i, REQUEST_DETAIL);
                             }
                         })
                         .bindTweet(activity, i, replies.get(i));

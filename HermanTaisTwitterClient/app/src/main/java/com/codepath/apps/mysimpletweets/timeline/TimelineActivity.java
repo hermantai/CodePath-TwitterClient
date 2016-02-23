@@ -77,7 +77,7 @@ public class TimelineActivity extends AppCompatActivity {
             }
         });
 
-        TimelineFragment frag = new TimelineFragment();
+        TimelineFragment frag = new TweetsTimelineFragment();
         mNetworkChangeListener = frag;
         mToolbarClickListener = frag;
         mFloatingActionButtonClickListener = frag;
