@@ -34,7 +34,7 @@ import com.codepath.apps.mysimpletweets.models.VideoInfoVariant;
 import com.codepath.apps.mysimpletweets.reply.ReplyFragment;
 import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
 import com.codepath.apps.mysimpletweets.showvideo.VideoActivity;
-import com.codepath.apps.mysimpletweets.timeline.TimelineActivity;
+import com.codepath.apps.mysimpletweets.timeline.TweetViewHolder;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
@@ -56,6 +56,7 @@ public class TweetDetailFragment extends Fragment {
     private static final String EXTRA_TWEET_POS = "com.codepath.apps.mysimpletweets.tweet_position";
 
     private static final int REQUEST_REPLY = 0;
+    private static final int REQUEST_DETAIL = 1;
 
     @Bind(R.id.ivTweetDetailProfileImage) ImageView mIvTweetDetailProfileImage;
     @Bind(R.id.tvTweetDetailUserName) TextView mTvTweetDetailUserName;
@@ -275,8 +276,22 @@ public class TweetDetailFragment extends Fragment {
                 LayoutInflater inflater = LayoutInflater.from(getActivity());
                 View v = inflater.inflate(R.layout.item_tweet, mLlTweetDetailReplies, false);
 
-                new TimelineActivity.TweetViewHolder(v, activity, null)
-                        .bindTweet(activity, i, replies.get(i), false);
+                new TweetViewHolder(
+                        v,
+                        null,
+                        null,
+                        new TweetViewHolder.TweetOnClickListener() {
+                            @Override
+                            public void onClick(int position, Tweet tweet) {
+                                Activity activity = getActivity();
+                                Intent i = TweetDetailActivity.newIntent(
+                                        getActivity(),
+                                        position,
+                                        tweet);
+                                activity.startActivityForResult(i, REQUEST_DETAIL);
+                            }
+                        })
+                        .bindTweet(activity, i, replies.get(i));
 
                 mLlTweetDetailReplies.addView(v);
             }
