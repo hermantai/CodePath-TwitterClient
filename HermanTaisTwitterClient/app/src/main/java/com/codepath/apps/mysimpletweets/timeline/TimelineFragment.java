@@ -29,6 +29,7 @@ import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.helpers.LogUtil;
 import com.codepath.apps.mysimpletweets.helpers.NetworkUtil;
 import com.codepath.apps.mysimpletweets.models.Tweet;
+import com.codepath.apps.mysimpletweets.models.TweetInterface;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
 import com.codepath.apps.mysimpletweets.tweetdetail.TweetDetailActivity;
@@ -202,7 +203,7 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
      * @param since_id The ID of the tweet that is right before tweetWithGapEarlier
      */
     protected abstract void fetchOlderTweetsForTimelineGap(
-            final Tweet tweetWithGapEarlier,
+            final TweetInterface tweetWithGapEarlier,
             final long since_id);
 
     private void refreshUser() {
@@ -273,20 +274,20 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
                     v,
                     new TweetViewHolder.ShowMoreOnClickListener() {
                         @Override
-                        public void onClick(Tweet tweet, long prevTweetId) {
+                        public void onClick(TweetInterface tweet, long prevTweetId) {
                             TimelineFragment.this.fetchOlderTweetsForTimelineGap(tweet,
                                     prevTweetId);
                         }
                     },
                     new TweetViewHolder.TweetUpdater() {
                         @Override
-                        public void updateTweet(Tweet tweet) {
+                        public void updateTweet(TweetInterface tweet) {
                             TweetsAdapter.this.updateTweet(tweet);
                         }
                     },
                     new TweetViewHolder.TweetOnClickListener(){
                         @Override
-                        public void onClick(int position, Tweet tweet) {
+                        public void onClick(int position, TweetInterface tweet) {
                             Intent i = TweetDetailActivity.newIntent(mContext, position, tweet);
                             startActivityForResult(i, REQUEST_DETAIL);
                         }
@@ -296,7 +297,7 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
 
         @Override
         public void onBindViewHolder(TweetViewHolder holder, int position) {
-            Tweet tweet = getItem(position);;
+            TweetInterface tweet = getItem(position);;
             holder.bindTweet(mContext, position, tweet);
         }
 
@@ -305,34 +306,42 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
             return mCursor.getCount();
         }
 
-        public void appendAll(List<Tweet> tweets) {
+        public void appendAll(List<TweetInterface> tweets) {
             int oldLen = getItemCount();
-            Tweet.saveAll(tweets);
+            if (!tweets.isEmpty()) {
+                tweets.get(0).saveAll(tweets);
+            }
+
             mCursor = TimelineFragment.this.fetchTweetsCursor();
             notifyItemRangeInserted(oldLen, tweets.size());
         }
 
-        public void addAll(List<Tweet> tweets) {
-            Tweet.saveAll(tweets);
+        public void addAll(List<TweetInterface> tweets) {
+            if (!tweets.isEmpty()) {
+                tweets.get(0).saveAll(tweets);
+            }
             mCursor = TimelineFragment.this.fetchTweetsCursor();
             notifyDataSetChanged();
         }
 
-        public void addToFront(Tweet tweet) {
-            tweet.save();
+        public void addToFront(TweetInterface tweet) {
+            tweet.saveOne();
             mCursor = TimelineFragment.this.fetchTweetsCursor();
             notifyItemInserted(0);
         }
 
-        public void addAllToFront(List<Tweet> tweets) {
-            Tweet.saveAll(tweets);
+        public void addAllToFront(List<TweetInterface> tweets) {
+            if (!tweets.isEmpty()) {
+                tweets.get(0).saveAll(tweets);
+            }
+
             mCursor = TimelineFragment.this.fetchTweetsCursor();
             notifyDataSetChanged();
         }
 
-        public Tweet getItem(int position) {
+        public TweetInterface getItem(int position) {
             mCursor.moveToPosition(position);
-            Tweet tweet = new Tweet();
+            TweetInterface tweet = new Tweet();
             tweet.loadFromCursor(mCursor);
             return tweet;
         }
@@ -343,8 +352,8 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
             notifyItemChanged(position);
         }
 
-        public void updateTweet(Tweet tweet) {
-            tweet.save();
+        public void updateTweet(TweetInterface tweet) {
+            tweet.saveOne();
             int p = mCursor.getPosition();
             if (getItem(p).getUid() == tweet.getUid()) {
                 // This is the most common case: the tweet to be updated is the one we just returned

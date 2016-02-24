@@ -1,13 +1,14 @@
 package com.codepath.apps.mysimpletweets.timeline;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 
 import com.codepath.apps.mysimpletweets.BuildConfig;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.helpers.LogUtil;
-import com.codepath.apps.mysimpletweets.models.Tweet;
+import com.codepath.apps.mysimpletweets.models.Mention;
 import com.codepath.apps.mysimpletweets.models.TweetInterface;
 import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -19,10 +20,11 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TweetsTimelineFragment extends TimelineFragment {
+public class MentionsTimelineFragment extends TimelineFragment {
     /**
      * Send an API request to get new tweets from the timeline json
      */
+    @Override
     protected void fetchNewerTweets() {
         final Context context = getActivity();
         long since_id = SimpleTweetsPrefs.getNewestFetchedId(context);
@@ -31,8 +33,9 @@ public class TweetsTimelineFragment extends TimelineFragment {
             // existing item and the new items we are fetching.
             since_id -= 1;
         }
+        Log.d(Common.INFO_TAG, "fetch newer mentions");
 
-        mClient.getHomeTimeline(
+        mClient.getMentions(
                 10,
                 since_id,
                 0,
@@ -41,14 +44,17 @@ public class TweetsTimelineFragment extends TimelineFragment {
                     public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                         if (BuildConfig.DEBUG) {
                             LogUtil.d(
-                                    Common.INFO_TAG, "fetch newer tweets: " + response.toString());
+                                    Common.INFO_TAG, "fetch newer mentions: "
+                                            + response.toString());
                         }
                         mSwipeContainer.setRefreshing(false);
 
                         // Deserialize JSON
                         // Create models
                         // Note that response sorts tweets in descending IDs
-                        List<Tweet> newTweets = Tweet.fromJsonArray(response);
+                        List<TweetInterface> newTweets = new ArrayList<TweetInterface>(
+                                Mention.fromJsonArray(response));
+                        mTweetsAdapter.appendAll(newTweets);
 
                         // We always fetch new items using the last fetched id - 1 as the
                         // since_id, so we support to get our previous fetched tweet back if
@@ -60,10 +66,12 @@ public class TweetsTimelineFragment extends TimelineFragment {
                                 && !newTweets.isEmpty()
                                 && newTweets.get(newTweets.size() - 1).getUid()
                                 > SimpleTweetsPrefs.getNewestFetchedId(context)) {
-                            newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
+                            if (SimpleTweetsPrefs.getNewestFetchedId(context) != 0) {
+                                newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
+                            }
                         }
                         // The adapter takes care of de-dedup
-                        mTweetsAdapter.addAllToFront(new ArrayList<TweetInterface>(newTweets));
+                        mTweetsAdapter.addAllToFront(newTweets);
                         if (!newTweets.isEmpty()) {
                             SimpleTweetsPrefs.setNewestFetchedId(context, newTweets
                                     .get(0).getUid());
@@ -121,10 +129,11 @@ public class TweetsTimelineFragment extends TimelineFragment {
      *
      * @param max_id The ID of the newest tweets to retrieve, exclusive.
      */
+    @Override
     protected void fetchOlderTweets(final long max_id) {
         final Context context = getActivity();
         mPbLoading.setVisibility(View.VISIBLE);
-        mClient.getHomeTimeline(
+        mClient.getMentions(
                 10,
                 0,
                 max_id,
@@ -138,7 +147,7 @@ public class TweetsTimelineFragment extends TimelineFragment {
                         // Deserialize JSON
                         // Create models
                         List<TweetInterface> newTweets = new ArrayList<TweetInterface>(
-                                Tweet.fromJsonArray(response));
+                                Mention.fromJsonArray(response));
                         mTweetsAdapter.appendAll(newTweets);
 
                         if (mStartedLoadingMore) {
@@ -210,11 +219,12 @@ public class TweetsTimelineFragment extends TimelineFragment {
      *                            tweet before this tweet (by tweet id, Uid)
      * @param since_id The ID of the tweet that is right before tweetWithGapEarlier
      */
+    @Override
     protected void fetchOlderTweetsForTimelineGap(
             final TweetInterface tweetWithGapEarlier,
             final long since_id) {
         mPbLoading.setVisibility(View.VISIBLE);
-        mClient.getHomeTimeline(
+        mClient.getMentions(
                 10,
                 since_id - 1,  // This means we should get the prev tweet back if there is no gap
                 tweetWithGapEarlier.getUid(),
@@ -227,8 +237,10 @@ public class TweetsTimelineFragment extends TimelineFragment {
 
                         // Deserialize JSON
                         // Create models
-                        List<TweetInterface> newTweets = new ArrayList<TweetInterface>(Tweet
-                                .fromJsonArray(response));
+                        List<TweetInterface> newTweets = new ArrayList<TweetInterface>(
+                                Mention.fromJsonArray(response));
+                        mTweetsAdapter.appendAll(newTweets);
+
                         if (!newTweets.isEmpty()
                                 && newTweets.get(newTweets.size() - 1).getUid() > since_id) {
                             newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
@@ -272,6 +284,6 @@ public class TweetsTimelineFragment extends TimelineFragment {
 
     @Override
     protected android.database.Cursor fetchTweetsCursor() {
-        return Tweet.fetchNonRepliesTweetsCursor();
+        return Mention.fetchTweetsCursorForTimeline();
     }
 }

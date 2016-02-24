@@ -3,16 +3,18 @@ package com.codepath.apps.mysimpletweets.timeline;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.helpers.StringUtil;
 import com.codepath.apps.mysimpletweets.models.Media;
-import com.codepath.apps.mysimpletweets.models.Tweet;
+import com.codepath.apps.mysimpletweets.models.TweetInterface;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -25,15 +27,15 @@ public class TweetViewHolder extends RecyclerView.ViewHolder implements View
         .OnClickListener {
 
     public interface ShowMoreOnClickListener {
-        void onClick(Tweet tweet, long prevTweetId);
+        void onClick(TweetInterface tweet, long prevTweetId);
     }
 
     public interface TweetUpdater {
-        void updateTweet(Tweet tweet);
+        void updateTweet(TweetInterface tweet);
     }
 
     public interface TweetOnClickListener {
-        void onClick(int position, Tweet tweet);
+        void onClick(int position, TweetInterface tweet);
     }
 
     private static final SimpleDateFormat sDateFormat = new SimpleDateFormat(
@@ -72,7 +74,7 @@ public class TweetViewHolder extends RecyclerView.ViewHolder implements View
         }
     };
 
-    private Tweet mTweet;
+    private TweetInterface mTweet;
     private int mTweetPos;
     private TweetUpdater mTweetUpdater;
 
@@ -92,7 +94,7 @@ public class TweetViewHolder extends RecyclerView.ViewHolder implements View
         mTvItemTweetBody.setOnClickListener(this);
     }
 
-    public void bindTweet(Context context, int tweetPosition, Tweet tweet) {
+    public void bindTweet(Context context, int tweetPosition, TweetInterface tweet) {
         mTweet = tweet;
         mTweetPos = tweetPosition;
 
@@ -129,7 +131,8 @@ public class TweetViewHolder extends RecyclerView.ViewHolder implements View
 
         if (mShowMoreOnClickListener != null) {
             if (mTweet.isHasMoreBefore()) {
-                final Tweet prevTweet = Tweet.fetchTweetBefore(mTweet);
+                Log.d(Common.INFO_TAG, "mTweet that has before: " + mTweet);
+                final TweetInterface prevTweet = mTweet.fetchTweetBefore();
                 if (prevTweet == null) {
                     // Very unlikely to happen
                     mBtnItemTweetShowMore.setVisibility(View.GONE);

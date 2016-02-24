@@ -18,6 +18,7 @@ import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.SimpleTweetsApplication;
 import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.models.Tweet;
+import com.codepath.apps.mysimpletweets.models.TweetInterface;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -37,9 +38,9 @@ public class ReplyFragment extends DialogFragment {
     @Bind(R.id.tvReplySend) TextView mTvReplySend;
 
     private TwitterClient mClient;
-    private Tweet mTweet;
+    private TweetInterface mTweet;
 
-    public static ReplyFragment newInstance(User user, Tweet tweet) {
+    public static ReplyFragment newInstance(User user, TweetInterface tweet) {
         ReplyFragment fragment = new ReplyFragment();
         Bundle args = new Bundle();
         args.putParcelable(ARG_USER, user);

@@ -87,6 +87,41 @@ public class TwitterClient extends OAuthBaseClient {
         getClient().get(apiUrl, params, handler);
     }
 
+    /**
+     * Get the mentions of the authenticated user. Mention is like a Tweet but with
+     * the user mentioned in the tweet.
+     * Get statuses/mentions_timeline.json
+     * The json lists the tweets in timestamp descending order.
+     *
+     * @param count
+     * @param since_id The ID of the oldest tweet to retrieve, exclusive. Use 0 if just want to get
+     *                 the newest tweets.
+     * @param max_id The ID of the newest tweet to retrieve, exclusive. Use 0 if not setting a
+     *               limit.
+     * @param handler
+     */
+    public void getMentions(
+            int count,
+            long since_id,
+            long max_id,
+            AsyncHttpResponseHandler handler) {
+        String apiUrl = getApiUrl("statuses/mentions_timeline.json");
+
+        // Specify the params
+        RequestParams params = new RequestParams();
+        params.put("count", count);
+        if (since_id > 0) {
+            params.put("since_id", since_id);
+        }
+        if (max_id != 0) {
+            // The max_id in the API is actually inclusive, so we adjust it here to make our API
+            // cleaner.
+            params.put("max_id", max_id - 1);
+        }
+
+        getClient().get(apiUrl, params, handler);
+    }
+
     public void updateStatus(CharSequence status, AsyncHttpResponseHandler handler) {
         String apiUrl = getApiUrl("statuses/update.json");
 

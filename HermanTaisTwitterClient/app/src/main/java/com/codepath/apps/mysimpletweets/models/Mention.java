@@ -93,7 +93,6 @@ package com.codepath.apps.mysimpletweets.models;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import com.activeandroid.ActiveAndroid;
 import com.activeandroid.Cache;
@@ -115,8 +114,8 @@ import java.util.List;
 /**
  * Parse the json + store the data, encapsulate state logic or display logic
  */
-@Table(name = "tweet")
-public class Tweet extends Model implements Parcelable, TweetInterface {
+@Table(name = "mention")
+public class Mention extends Model implements Parcelable, TweetInterface {
     // list out the attributes
 
     @Column(name = "text")
@@ -151,12 +150,26 @@ public class Tweet extends Model implements Parcelable, TweetInterface {
     @Column(name = "in_reply_to_status_id", index = true)
     private long mInReplyToStatusId;
 
-    public static Tweet fromJson(JSONObject jsonObject) {
+    public static Mention fromJson(JSONObject jsonObject) {
         Gson gson = Common.getGson();
-        Tweet tweet = gson.fromJson(jsonObject.toString(), Tweet.class);
-        return tweet;
+        Mention mention = gson.fromJson(jsonObject.toString(), Mention.class);
+        return mention;
     }
 
+    public String getText() {
+        return mText;
+    }
+
+    public long getUid() {
+        return mUid;
+    }
+
+    @Override
+    public void saveOne() {
+        save();
+    }
+
+    @Override
     public void saveAll(List<TweetInterface> tweets) {
         ActiveAndroid.beginTransaction();
         try {
@@ -169,16 +182,14 @@ public class Tweet extends Model implements Parcelable, TweetInterface {
         }
     }
 
-    public void saveOne() {
-        save();
-    }
-
-    public String getText() {
-        return mText;
-    }
-
-    public long getUid() {
-        return mUid;
+    @Override
+    public List<TweetInterface> fetchRepliesTweets() {
+        List<Mention> mentions = new Select()
+            .from(Mention.class)
+            .where("in_reply_to_status_id = ?", getUid())
+            .orderBy("uid desc")
+            .execute();
+        return new ArrayList<TweetInterface>(mentions);
     }
 
     public Date getCreatedAt() {
@@ -221,19 +232,18 @@ public class Tweet extends Model implements Parcelable, TweetInterface {
         return mInReplyToStatusId;
     }
 
-    public static ArrayList<Tweet> fromJsonArray(JSONArray jsonArray) {
-        ArrayList<Tweet> tweets = new ArrayList<>();
+    public static ArrayList<Mention> fromJsonArray(JSONArray jsonArray) {
+        ArrayList<Mention> mentions = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++ ) {
             try {
-                tweets.add(Tweet.fromJson(jsonArray.getJSONObject(i)));
-                Log.d(Common.INFO_TAG, "Tweet id: " + tweets.get(i).getUid());
+                mentions.add(Mention.fromJson(jsonArray.getJSONObject(i)));
             } catch (JSONException e) {
                 e.printStackTrace();
                 continue;
             }
         }
 
-        return tweets;
+        return mentions;
     }
 
     @Override
@@ -241,30 +251,20 @@ public class Tweet extends Model implements Parcelable, TweetInterface {
         return Common.getGson().toJson(this);
     }
 
-    public Tweet() {
+    public Mention() {
     }
 
-    public static Cursor fetchNonRepliesTweetsCursor() {
+    public static Cursor fetchTweetsCursorForTimeline() {
         String resultRecords = new Select()
-                .from(Tweet.class)
-                .where("in_reply_to_status_id == 0")
+                .from(Mention.class)
                 .orderBy("uid desc")
                 .toSql();
         return Cache.openDatabase().rawQuery(resultRecords, new String[]{});
     }
 
-    public List<TweetInterface> fetchRepliesTweets() {
-        List<Tweet> tweets = new Select()
-            .from(Tweet.class)
-            .where("in_reply_to_status_id = ?", getUid())
-            .orderBy("uid desc")
-            .execute();
-        return new ArrayList<TweetInterface>(tweets);
-    }
-
     public TweetInterface fetchTweetBefore() {
         return new Select()
-                .from(Tweet.class)
+                .from(Mention.class)
                 .where("uid < ?", getUid())
                 .orderBy("uid desc")
                 .limit(1)
@@ -291,7 +291,7 @@ public class Tweet extends Model implements Parcelable, TweetInterface {
         dest.writeLong(this.mInReplyToStatusId);
     }
 
-    protected Tweet(Parcel in) {
+    protected Mention(Parcel in) {
         this.mText = in.readString();
         this.mUid = in.readLong();
         this.mUser = in.readParcelable(User.class.getClassLoader());

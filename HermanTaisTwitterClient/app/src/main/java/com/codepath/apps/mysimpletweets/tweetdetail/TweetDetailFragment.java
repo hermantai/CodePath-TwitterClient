@@ -27,7 +27,9 @@ import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.helpers.LogUtil;
 import com.codepath.apps.mysimpletweets.models.ExtendedEntities;
 import com.codepath.apps.mysimpletweets.models.Media;
+import com.codepath.apps.mysimpletweets.models.Mention;
 import com.codepath.apps.mysimpletweets.models.Tweet;
+import com.codepath.apps.mysimpletweets.models.TweetInterface;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.models.VideoInfo;
 import com.codepath.apps.mysimpletweets.models.VideoInfoVariant;
@@ -74,10 +76,10 @@ public class TweetDetailFragment extends Fragment {
     @Bind(R.id.vFullScreenVideoTrigger) View mVFullScreenVideoTrigger;
 
     private TwitterClient mClient;
-    private Tweet mTweet;
+    private TweetInterface mTweet;
     private int mTweetPos;
 
-    public static TweetDetailFragment newInstance(int tweetPosition, Tweet tweet) {
+    public static TweetDetailFragment newInstance(int tweetPosition, TweetInterface tweet) {
         Bundle bundle = new Bundle();
         bundle.putParcelable(ARG_TWEET, tweet);
         bundle.putInt(ARG_TWEET_POS, tweetPosition);
@@ -268,7 +270,7 @@ public class TweetDetailFragment extends Fragment {
     private void setUpReplies() {
         mLlTweetDetailReplies.removeAllViews();
 
-        List<Tweet> replies = Tweet.fetchRepliesTweets(mTweet.getUid());
+        List<TweetInterface> replies = mTweet.fetchRepliesTweets();
 
         Activity activity = getActivity();
         if (!replies.isEmpty()) {
@@ -282,8 +284,7 @@ public class TweetDetailFragment extends Fragment {
                         null,
                         new TweetViewHolder.TweetOnClickListener() {
                             @Override
-                            public void onClick(int position, Tweet tweet) {
-                                Activity activity = getActivity();
+                            public void onClick(int position, TweetInterface tweet) {
                                 Intent i = TweetDetailActivity.newIntent(
                                         getActivity(),
                                         position,
@@ -447,10 +448,19 @@ public class TweetDetailFragment extends Fragment {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 Log.d(Common.INFO_TAG, "New tweet: " + response.toString());
-                List<Tweet> tweets = Tweet.fromJsonArray(response);
+                List<TweetInterface> tweets;
+                if (mTweet instanceof Tweet) {
+                    tweets = new ArrayList<TweetInterface>(Tweet.fromJsonArray(response));
+                } else if (mTweet instanceof Mention){
+                    tweets = new ArrayList<TweetInterface>(Mention.fromJsonArray(response));
+                } else {
+                    throw new RuntimeException(
+                            "Tweet does not belong to any known class: " + mTweet);
+                }
+
                 if (!tweets.isEmpty()) {
                     mTweet = tweets.get(0);
-                    mTweet.save();
+                    mTweet.saveOne();
                     setUpRetweetLikeCounts();
                 }
                 Intent i = new Intent();

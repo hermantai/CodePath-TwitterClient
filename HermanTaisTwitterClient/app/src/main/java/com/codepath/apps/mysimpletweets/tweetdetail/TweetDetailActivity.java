@@ -8,12 +8,13 @@ import android.support.v7.widget.Toolbar;
 
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.models.Tweet;
+import com.codepath.apps.mysimpletweets.models.TweetInterface;
 
 public class TweetDetailActivity extends SingleFragmentActivity {
     private static final String EXTRA_TWEET = "com.codepath.apps.mysimpletweets.tweet";
     private static final String EXTRA_TWEET_POS = "com.codepath.apps.mysimpletweets.tweet_position";
 
-    public static Intent newIntent(Context context, int tweetPosition, Tweet tweet) {
+    public static Intent newIntent(Context context, int tweetPosition, TweetInterface tweet) {
         Intent i = new Intent(context, TweetDetailActivity.class);
         i.putExtra(EXTRA_TWEET, tweet);
         i.putExtra(EXTRA_TWEET_POS, tweetPosition);
