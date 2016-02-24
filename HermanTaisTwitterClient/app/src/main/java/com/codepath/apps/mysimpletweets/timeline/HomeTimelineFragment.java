@@ -19,7 +19,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TweetsTimelineFragment extends TimelineFragment {
+public class HomeTimelineFragment extends TimelineFragment {
     /**
      * Send an API request to get new tweets from the timeline json
      */

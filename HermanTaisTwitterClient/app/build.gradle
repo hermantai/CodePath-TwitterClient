@@ -39,4 +39,6 @@ dependencies {
 
     // unescape html
     compile 'org.apache.commons:commons-lang3:3.1'
+
+    compile 'com.astuetz:pagerslidingtabstrip:1.0.1'
 }
