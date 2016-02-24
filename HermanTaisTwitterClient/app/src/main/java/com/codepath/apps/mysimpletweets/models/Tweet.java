@@ -226,7 +226,6 @@ public class Tweet extends Model implements Parcelable, TweetInterface {
         for (int i = 0; i < jsonArray.length(); i++ ) {
             try {
                 tweets.add(Tweet.fromJson(jsonArray.getJSONObject(i)));
-                Log.d(Common.INFO_TAG, "Tweet id: " + tweets.get(i).getUid());
             } catch (JSONException e) {
                 e.printStackTrace();
                 continue;

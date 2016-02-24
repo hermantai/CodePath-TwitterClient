@@ -7,12 +7,16 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 
+import com.astuetz.PagerSlidingTabStrip;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
 
@@ -21,6 +25,8 @@ import butterknife.ButterKnife;
 
 public class TimelineActivity extends AppCompatActivity {
     @Bind(R.id.fab) FloatingActionButton mFab;
+    @Bind(R.id.viewPager) ViewPager mViewPager;
+    @Bind(R.id.tabStrip) PagerSlidingTabStrip mTabStrip;
 
     private BroadcastReceiver mNetworkChangeReceiver = new BroadcastReceiver() {
         @Override
@@ -77,12 +83,44 @@ public class TimelineActivity extends AppCompatActivity {
             }
         });
 
-        TimelineFragment frag = new MentionsTimelineFragment(); //new HomeTimelineFragment();
-        mNetworkChangeListener = frag;
-        mToolbarClickListener = frag;
-        mFloatingActionButtonClickListener = frag;
-
         FragmentManager fm = getSupportFragmentManager();
-        fm.beginTransaction().replace(R.id.fragment_container, frag).commit();
+        mViewPager.setAdapter(new TweetsPagerAdapter(fm));
+        mTabStrip.setViewPager(mViewPager);
+
+        // TODO: need to do something similar to below to set the listeners
+        // TimelineFragment frag = new MentionsTimelineFragment(); //new HomeTimelineFragment();
+        // mNetworkChangeListener = frag;
+        // mToolbarClickListener = frag;
+        // mFloatingActionButtonClickListener = frag;
+    }
+
+    public class TweetsPagerAdapter extends FragmentPagerAdapter {
+        final int PAGE_COUNT = 2;
+        private String tabTitles[] = {"Home", "Mentions"};
+
+        public TweetsPagerAdapter(FragmentManager fm ) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            if (position == 0) {
+                return new HomeTimelineFragment();
+            } else if (position == 1){
+                return new MentionsTimelineFragment();
+            } else {
+                throw new RuntimeException("Impossible position: " + position);
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return tabTitles.length;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return tabTitles[position];
+        }
     }
 }

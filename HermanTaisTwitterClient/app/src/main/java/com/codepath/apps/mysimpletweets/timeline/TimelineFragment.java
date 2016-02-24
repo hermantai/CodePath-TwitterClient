@@ -68,7 +68,7 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle
             savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_tweet_list, container, false);
+        View v = inflater.inflate(R.layout.fragment_tweets_list, container, false);
         ButterKnife.bind(this, v);
 
         Activity activity = getActivity();
