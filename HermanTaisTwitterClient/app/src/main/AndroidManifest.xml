@@ -62,9 +62,12 @@
             android:name=".tweetdetail.TweetDetailActivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
-        <activity android:name=".showvideo.VideoActivity"
-                  android:theme="@style/FullScreenVideoTheme"
-                  android:configChanges="orientation|screenSize">
+        <activity
+            android:name=".showvideo.VideoActivity"
+            android:configChanges="orientation|screenSize"
+            android:theme="@style/FullScreenVideoTheme">
+        </activity>
+        <activity android:name=".profile.ProfileActivity">
         </activity>
     </application>
 

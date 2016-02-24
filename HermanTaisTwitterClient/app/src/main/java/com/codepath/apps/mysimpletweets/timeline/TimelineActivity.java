@@ -14,11 +14,14 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
+import com.codepath.apps.mysimpletweets.profile.ProfileActivity;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -92,6 +95,26 @@ public class TimelineActivity extends AppCompatActivity {
         // mNetworkChangeListener = frag;
         // mToolbarClickListener = frag;
         // mFloatingActionButtonClickListener = frag;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_timeline, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+
+        switch(itemId) {
+            case R.id.miProfile:
+                Intent i = ProfileActivity.newIntent(this);
+                startActivity(i);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public class TweetsPagerAdapter extends FragmentPagerAdapter {
