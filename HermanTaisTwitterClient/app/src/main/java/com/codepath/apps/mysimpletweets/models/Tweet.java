@@ -93,7 +93,6 @@ package com.codepath.apps.mysimpletweets.models;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import com.activeandroid.ActiveAndroid;
 import com.activeandroid.Cache;

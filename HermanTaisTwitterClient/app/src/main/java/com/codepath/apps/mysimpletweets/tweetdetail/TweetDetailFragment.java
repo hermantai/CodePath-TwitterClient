@@ -51,6 +51,11 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 
 public class TweetDetailFragment extends Fragment {
+    public interface NewestFetchedIdProvider {
+        long getNewestFetchedId(Context context);
+        void setNewestFetchedId(Context context, long id);
+    }
+
     private static final String ARG_TWEET = "tweet";
     private static final String ARG_TWEET_POS = "tweet_position";
 
@@ -78,13 +83,18 @@ public class TweetDetailFragment extends Fragment {
     private TwitterClient mClient;
     private TweetInterface mTweet;
     private int mTweetPos;
+    private NewestFetchedIdProvider mNewestFetchedIdProvider;
 
-    public static TweetDetailFragment newInstance(int tweetPosition, TweetInterface tweet) {
+    public static TweetDetailFragment newInstance(
+            int tweetPosition,
+            TweetInterface tweet,
+            NewestFetchedIdProvider provider) {
         Bundle bundle = new Bundle();
         bundle.putParcelable(ARG_TWEET, tweet);
         bundle.putInt(ARG_TWEET_POS, tweetPosition);
 
         TweetDetailFragment frag = new TweetDetailFragment();
+        frag.mNewestFetchedIdProvider = provider;
         frag.setArguments(bundle);
 
         return frag;
@@ -307,8 +317,8 @@ public class TweetDetailFragment extends Fragment {
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // unlike.
                 Context context = TweetDetailFragment.this.getActivity();
-                if (SimpleTweetsPrefs.getNewestFetchedId(context) > mTweet.getUid()) {
-                    SimpleTweetsPrefs.setNewestFetchedId(context, mTweet.getUid());
+                if (SimpleTweetsPrefs.getNewestHomeFetchedId(context) > mTweet.getUid()) {
+                    SimpleTweetsPrefs.setNewestHomeFetchedId(context, mTweet.getUid());
                 }
 
                 mClient.unlike(mTweet.getUid(), new JsonHttpResponseHandler() {
@@ -343,8 +353,8 @@ public class TweetDetailFragment extends Fragment {
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // like.
                 Context context = TweetDetailFragment.this.getActivity();
-                if (SimpleTweetsPrefs.getNewestFetchedId(context) > mTweet.getUid()) {
-                    SimpleTweetsPrefs.setNewestFetchedId(context, mTweet.getUid());
+                if (SimpleTweetsPrefs.getNewestHomeFetchedId(context) > mTweet.getUid()) {
+                    SimpleTweetsPrefs.setNewestHomeFetchedId(context, mTweet.getUid());
                 }
 
                 mClient.like(mTweet.getUid(), new JsonHttpResponseHandler() {
@@ -379,8 +389,8 @@ public class TweetDetailFragment extends Fragment {
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // unretweet.
                 Context context = TweetDetailFragment.this.getActivity();
-                if (SimpleTweetsPrefs.getNewestFetchedId(context) > mTweet.getUid()) {
-                    SimpleTweetsPrefs.setNewestFetchedId(context, mTweet.getUid());
+                if (SimpleTweetsPrefs.getNewestHomeFetchedId(context) > mTweet.getUid()) {
+                    SimpleTweetsPrefs.setNewestHomeFetchedId(context, mTweet.getUid());
                 }
 
                 mClient.unretweet(mTweet.getUid(), new JsonHttpResponseHandler() {
@@ -415,8 +425,8 @@ public class TweetDetailFragment extends Fragment {
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // retweet.
                 Context context = TweetDetailFragment.this.getActivity();
-                if (SimpleTweetsPrefs.getNewestFetchedId(context) > mTweet.getUid()) {
-                    SimpleTweetsPrefs.setNewestFetchedId(context, mTweet.getUid());
+                if (SimpleTweetsPrefs.getNewestHomeFetchedId(context) > mTweet.getUid()) {
+                    SimpleTweetsPrefs.setNewestHomeFetchedId(context, mTweet.getUid());
                 }
 
                 mClient.retweet(mTweet.getUid(), new JsonHttpResponseHandler() {

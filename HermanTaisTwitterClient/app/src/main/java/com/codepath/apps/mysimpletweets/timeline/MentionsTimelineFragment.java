@@ -27,7 +27,7 @@ public class MentionsTimelineFragment extends TimelineFragment {
     @Override
     protected void fetchNewerTweets() {
         final Context context = getActivity();
-        long since_id = SimpleTweetsPrefs.getNewestFetchedId(context);
+        long since_id = SimpleTweetsPrefs.getNewestMentionsFetchedId(context);
         if (since_id != 0) {
             // We want to fetch some overlapped items to check if there is a gap between the newest
             // existing item and the new items we are fetching.
@@ -65,15 +65,15 @@ public class MentionsTimelineFragment extends TimelineFragment {
                         if (mTweetsAdapter.getItemCount() != 0
                                 && !newTweets.isEmpty()
                                 && newTweets.get(newTweets.size() - 1).getUid()
-                                > SimpleTweetsPrefs.getNewestFetchedId(context)) {
-                            if (SimpleTweetsPrefs.getNewestFetchedId(context) != 0) {
+                                > SimpleTweetsPrefs.getNewestMentionsFetchedId(context)) {
+                            if (SimpleTweetsPrefs.getNewestMentionsFetchedId(context) != 0) {
                                 newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
                             }
                         }
                         // The adapter takes care of de-dedup
                         mTweetsAdapter.addAllToFront(newTweets);
                         if (!newTweets.isEmpty()) {
-                            SimpleTweetsPrefs.setNewestFetchedId(context, newTweets
+                            SimpleTweetsPrefs.setNewestMentionsFetchedId(context, newTweets
                                     .get(0).getUid());
                         }
                     }
@@ -285,5 +285,10 @@ public class MentionsTimelineFragment extends TimelineFragment {
     @Override
     protected android.database.Cursor fetchTweetsCursor() {
         return Mention.fetchTweetsCursorForTimeline();
+    }
+
+    @Override
+    protected String getNewestFetchedIdFieldInPrefs() {
+        return SimpleTweetsPrefs.PREF_NEWEST_MENTIONS_FETCHED_ID;
     }
 }

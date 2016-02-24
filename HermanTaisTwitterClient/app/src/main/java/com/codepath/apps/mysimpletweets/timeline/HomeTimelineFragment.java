@@ -25,7 +25,7 @@ public class HomeTimelineFragment extends TimelineFragment {
      */
     protected void fetchNewerTweets() {
         final Context context = getActivity();
-        long since_id = SimpleTweetsPrefs.getNewestFetchedId(context);
+        long since_id = SimpleTweetsPrefs.getNewestHomeFetchedId(context);
         if (since_id != 0) {
             // We want to fetch some overlapped items to check if there is a gap between the newest
             // existing item and the new items we are fetching.
@@ -59,13 +59,13 @@ public class HomeTimelineFragment extends TimelineFragment {
                         if (mTweetsAdapter.getItemCount() != 0
                                 && !newTweets.isEmpty()
                                 && newTweets.get(newTweets.size() - 1).getUid()
-                                > SimpleTweetsPrefs.getNewestFetchedId(context)) {
+                                > SimpleTweetsPrefs.getNewestHomeFetchedId(context)) {
                             newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
                         }
                         // The adapter takes care of de-dedup
                         mTweetsAdapter.addAllToFront(new ArrayList<TweetInterface>(newTweets));
                         if (!newTweets.isEmpty()) {
-                            SimpleTweetsPrefs.setNewestFetchedId(context, newTweets
+                            SimpleTweetsPrefs.setNewestHomeFetchedId(context, newTweets
                                     .get(0).getUid());
                         }
                     }
@@ -273,5 +273,10 @@ public class HomeTimelineFragment extends TimelineFragment {
     @Override
     protected android.database.Cursor fetchTweetsCursor() {
         return Tweet.fetchNonRepliesTweetsCursor();
+    }
+
+    @Override
+    protected String getNewestFetchedIdFieldInPrefs() {
+        return SimpleTweetsPrefs.PREF_NEWEST_HOME_FETCHED_ID;
     }
 }
