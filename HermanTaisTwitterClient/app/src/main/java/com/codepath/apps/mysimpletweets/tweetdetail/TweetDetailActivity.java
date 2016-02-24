@@ -40,55 +40,10 @@ public class TweetDetailActivity extends SingleFragmentActivity {
 
     @Override
     protected Fragment createFragment() {
-        TweetDetailFragment.NewestFetchedIdProvider provider;
-
-        String newestIdFieldInPrefs = getIntent().getStringExtra(EXTRA_NEWEST_ID_FIELD_IN_PREFS);
-
-        if (newestIdFieldInPrefs.equals(SimpleTweetsPrefs.PREF_NEWEST_HOME_FETCHED_ID)) {
-            provider = new TweetDetailFragment.NewestFetchedIdProvider() {
-                @Override
-                public long getNewestFetchedId(Context context) {
-                    return SimpleTweetsPrefs.getNewestHomeFetchedId(context);
-                }
-
-                @Override
-                public void setNewestFetchedId(Context context, long id) {
-                    SimpleTweetsPrefs.setNewestHomeFetchedId(context, id);
-                }
-            };
-        } else if(newestIdFieldInPrefs.equals(SimpleTweetsPrefs.PREF_NEWEST_MENTIONS_FETCHED_ID)) {
-            provider = new TweetDetailFragment.NewestFetchedIdProvider() {
-                @Override
-                public long getNewestFetchedId(Context context) {
-                    return SimpleTweetsPrefs.getNewestMentionsFetchedId(context);
-                }
-
-                @Override
-                public void setNewestFetchedId(Context context, long id) {
-                    SimpleTweetsPrefs.setNewestMentionsFetchedId(context, id);
-                }
-            };
-        } else if(newestIdFieldInPrefs.equals(SimpleTweetsPrefs
-                .PREF_NEWEST_USER_TIMELINE_FETCHED_ID)) {
-            provider = new TweetDetailFragment.NewestFetchedIdProvider() {
-                @Override
-                public long getNewestFetchedId(Context context) {
-                    return SimpleTweetsPrefs.getNewestUserTimelineFetchedId(context);
-                }
-
-                @Override
-                public void setNewestFetchedId(Context context, long id) {
-                    SimpleTweetsPrefs.setNewestUserTimelineFetchedId(context, id);
-                }
-            };
-        } else {
-            throw new RuntimeException("Impossible pref field: " + newestIdFieldInPrefs);
-        }
-
         return TweetDetailFragment.newInstance(
                 getIntent().getIntExtra(EXTRA_TWEET_POS, 0),
                 (Tweet) getIntent().getParcelableExtra(EXTRA_TWEET),
-                provider);
+                getIntent().getStringExtra(EXTRA_NEWEST_ID_FIELD_IN_PREFS));
     }
 
     public static Tweet getUpdatedTweet(Intent data) {

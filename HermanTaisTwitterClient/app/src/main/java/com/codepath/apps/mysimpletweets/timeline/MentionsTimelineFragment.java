@@ -86,7 +86,7 @@ public class MentionsTimelineFragment extends TimelineFragment {
                         ErrorHandling.handleError(
                                 context,
                                 Common.INFO_TAG,
-                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                "Error retrieving mentions: " + throwable.getLocalizedMessage(),
                                 throwable);
                         LogUtil.d(Common.INFO_TAG, responseString);
                         showSnackBarForNetworkError(new View.OnClickListener() {
@@ -108,7 +108,7 @@ public class MentionsTimelineFragment extends TimelineFragment {
                         ErrorHandling.handleError(
                                 context,
                                 Common.INFO_TAG,
-                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                "Error retrieving mentions: " + throwable.getLocalizedMessage(),
                                 throwable);
                         LogUtil.d(
                                 Common.INFO_TAG,
@@ -141,7 +141,9 @@ public class MentionsTimelineFragment extends TimelineFragment {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                         if (BuildConfig.DEBUG) {
-                            LogUtil.d(Common.INFO_TAG, "fetchOlderTweets: " + response.toString());
+                            LogUtil.d(
+                                    Common.INFO_TAG,
+                                    "fetchOlderMentions: " + response.toString());
                         }
 
                         // Deserialize JSON
@@ -171,7 +173,7 @@ public class MentionsTimelineFragment extends TimelineFragment {
                         ErrorHandling.handleError(
                                 context,
                                 Common.INFO_TAG,
-                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                "Error retrieving mentions: " + throwable.getLocalizedMessage(),
                                 throwable);
                         LogUtil.d(Common.INFO_TAG, responseString);
                         showSnackBarForNetworkError(new View.OnClickListener() {
@@ -196,7 +198,7 @@ public class MentionsTimelineFragment extends TimelineFragment {
                         ErrorHandling.handleError(
                                 context,
                                 Common.INFO_TAG,
-                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                "Error retrieving mentions: " + throwable.getLocalizedMessage(),
                                 throwable);
                         LogUtil.d(
                                 Common.INFO_TAG,
@@ -232,7 +234,9 @@ public class MentionsTimelineFragment extends TimelineFragment {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                         if (BuildConfig.DEBUG) {
-                            LogUtil.d(Common.INFO_TAG, "fetchOlderTweets: " + response.toString());
+                            LogUtil.d(
+                                    Common.INFO_TAG,
+                                    "fetchOlderMentions: " + response.toString());
                         }
 
                         // Deserialize JSON
@@ -257,7 +261,7 @@ public class MentionsTimelineFragment extends TimelineFragment {
                         ErrorHandling.handleError(
                                 getActivity(),
                                 Common.INFO_TAG,
-                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                "Error retrieving mentions: " + throwable.getLocalizedMessage(),
                                 throwable);
                         LogUtil.d(Common.INFO_TAG, responseString);
                         mPbLoading.setVisibility(View.GONE);
@@ -272,7 +276,7 @@ public class MentionsTimelineFragment extends TimelineFragment {
                         ErrorHandling.handleError(
                                 getActivity(),
                                 Common.INFO_TAG,
-                                "Error retrieving tweets: " + throwable.getLocalizedMessage(),
+                                "Error retrieving mentions: " + throwable.getLocalizedMessage(),
                                 throwable);
                         LogUtil.d(
                                 Common.INFO_TAG,

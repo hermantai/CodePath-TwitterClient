@@ -58,6 +58,8 @@ public class TweetDetailFragment extends Fragment {
 
     private static final String ARG_TWEET = "tweet";
     private static final String ARG_TWEET_POS = "tweet_position";
+    private static final String ARG_NEWEST_FETCHED_ID_FIELD_IN_PREFS =
+            "newest_fetched_id_field_in_prefs";
 
     private static final String EXTRA_TWEET = "com.codepath.apps.mysimpletweets.tweet";
     private static final String EXTRA_TWEET_POS = "com.codepath.apps.mysimpletweets.tweet_position";
@@ -84,17 +86,18 @@ public class TweetDetailFragment extends Fragment {
     private TweetInterface mTweet;
     private int mTweetPos;
     private NewestFetchedIdProvider mNewestFetchedIdProvider;
+    private String mNewestFetchedIdFieldInPrefs;
 
     public static TweetDetailFragment newInstance(
             int tweetPosition,
             TweetInterface tweet,
-            NewestFetchedIdProvider provider) {
+            String newestFetchedIdFieldInPrefs) {
         Bundle bundle = new Bundle();
         bundle.putParcelable(ARG_TWEET, tweet);
         bundle.putInt(ARG_TWEET_POS, tweetPosition);
+        bundle.putString(ARG_NEWEST_FETCHED_ID_FIELD_IN_PREFS, newestFetchedIdFieldInPrefs);
 
         TweetDetailFragment frag = new TweetDetailFragment();
-        frag.mNewestFetchedIdProvider = provider;
         frag.setArguments(bundle);
 
         return frag;
@@ -114,6 +117,49 @@ public class TweetDetailFragment extends Fragment {
         mClient = SimpleTweetsApplication.getRestClient();
         mTweet = getArguments().getParcelable(ARG_TWEET);
         mTweetPos = getArguments().getInt(ARG_TWEET_POS);
+        mNewestFetchedIdFieldInPrefs = getArguments().getString(
+                ARG_NEWEST_FETCHED_ID_FIELD_IN_PREFS);
+
+        if (mNewestFetchedIdFieldInPrefs.equals(SimpleTweetsPrefs.PREF_NEWEST_HOME_FETCHED_ID)) {
+            mNewestFetchedIdProvider = new TweetDetailFragment.NewestFetchedIdProvider() {
+                @Override
+                public long getNewestFetchedId(Context context) {
+                    return SimpleTweetsPrefs.getNewestHomeFetchedId(context);
+                }
+
+                @Override
+                public void setNewestFetchedId(Context context, long id) {
+                    SimpleTweetsPrefs.setNewestHomeFetchedId(context, id);
+                }
+            };
+        } else if(mNewestFetchedIdFieldInPrefs.equals(SimpleTweetsPrefs.PREF_NEWEST_MENTIONS_FETCHED_ID)) {
+            mNewestFetchedIdProvider = new TweetDetailFragment.NewestFetchedIdProvider() {
+                @Override
+                public long getNewestFetchedId(Context context) {
+                    return SimpleTweetsPrefs.getNewestMentionsFetchedId(context);
+                }
+
+                @Override
+                public void setNewestFetchedId(Context context, long id) {
+                    SimpleTweetsPrefs.setNewestMentionsFetchedId(context, id);
+                }
+            };
+        } else if(mNewestFetchedIdFieldInPrefs.equals(SimpleTweetsPrefs
+                .PREF_NEWEST_USER_TIMELINE_FETCHED_ID)) {
+            mNewestFetchedIdProvider = new TweetDetailFragment.NewestFetchedIdProvider() {
+                @Override
+                public long getNewestFetchedId(Context context) {
+                    return SimpleTweetsPrefs.getNewestUserTimelineFetchedId(context);
+                }
+
+                @Override
+                public void setNewestFetchedId(Context context, long id) {
+                    SimpleTweetsPrefs.setNewestUserTimelineFetchedId(context, id);
+                }
+            };
+        } else {
+            throw new RuntimeException("Impossible pref field: " + mNewestFetchedIdFieldInPrefs);
+        }
     }
 
     @Nullable
@@ -298,7 +344,8 @@ public class TweetDetailFragment extends Fragment {
                                 Intent i = TweetDetailActivity.newIntent(
                                         getActivity(),
                                         position,
-                                        tweet);
+                                        tweet,
+                                        mNewestFetchedIdFieldInPrefs);
                                 startActivityForResult(i, REQUEST_DETAIL);
                             }
                         })
@@ -317,8 +364,8 @@ public class TweetDetailFragment extends Fragment {
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // unlike.
                 Context context = TweetDetailFragment.this.getActivity();
-                if (SimpleTweetsPrefs.getNewestHomeFetchedId(context) > mTweet.getUid()) {
-                    SimpleTweetsPrefs.setNewestHomeFetchedId(context, mTweet.getUid());
+                if (mNewestFetchedIdProvider.getNewestFetchedId(context) > mTweet.getUid()) {
+                    mNewestFetchedIdProvider.setNewestFetchedId(context, mTweet.getUid());
                 }
 
                 mClient.unlike(mTweet.getUid(), new JsonHttpResponseHandler() {
@@ -353,8 +400,8 @@ public class TweetDetailFragment extends Fragment {
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // like.
                 Context context = TweetDetailFragment.this.getActivity();
-                if (SimpleTweetsPrefs.getNewestHomeFetchedId(context) > mTweet.getUid()) {
-                    SimpleTweetsPrefs.setNewestHomeFetchedId(context, mTweet.getUid());
+                if (mNewestFetchedIdProvider.getNewestFetchedId(context) > mTweet.getUid()) {
+                    mNewestFetchedIdProvider.setNewestFetchedId(context, mTweet.getUid());
                 }
 
                 mClient.like(mTweet.getUid(), new JsonHttpResponseHandler() {
@@ -389,8 +436,8 @@ public class TweetDetailFragment extends Fragment {
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // unretweet.
                 Context context = TweetDetailFragment.this.getActivity();
-                if (SimpleTweetsPrefs.getNewestHomeFetchedId(context) > mTweet.getUid()) {
-                    SimpleTweetsPrefs.setNewestHomeFetchedId(context, mTweet.getUid());
+                if (mNewestFetchedIdProvider.getNewestFetchedId(context) > mTweet.getUid()) {
+                    mNewestFetchedIdProvider.setNewestFetchedId(context, mTweet.getUid());
                 }
 
                 mClient.unretweet(mTweet.getUid(), new JsonHttpResponseHandler() {
@@ -425,8 +472,8 @@ public class TweetDetailFragment extends Fragment {
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // retweet.
                 Context context = TweetDetailFragment.this.getActivity();
-                if (SimpleTweetsPrefs.getNewestHomeFetchedId(context) > mTweet.getUid()) {
-                    SimpleTweetsPrefs.setNewestHomeFetchedId(context, mTweet.getUid());
+                if (mNewestFetchedIdProvider.getNewestFetchedId(context) > mTweet.getUid()) {
+                    mNewestFetchedIdProvider.setNewestFetchedId(context, mTweet.getUid());
                 }
 
                 mClient.retweet(mTweet.getUid(), new JsonHttpResponseHandler() {
