@@ -76,9 +76,10 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
         mTweetsAdapter = new TweetsAdapter(activity);
         int itemCount = mTweetsAdapter.getItemCount();
         if (itemCount != 0) {
-            SimpleTweetsPrefs.setNewestHomeFetchedId(
-                    activity, mTweetsAdapter.getItem(itemCount - 1).getUid());
+            setNewestFetchedId(
+                    activity, mTweetsAdapter.getItem(0).getUid());
         }
+
         rvTweets.setAdapter(mTweetsAdapter);
         final LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -258,6 +259,8 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
     protected abstract Cursor fetchTweetsCursor();
 
     protected abstract String getNewestFetchedIdFieldInPrefs();
+
+    protected abstract void setNewestFetchedId(Context context, long id);
 
     class TweetsAdapter extends RecyclerView.Adapter<TweetViewHolder> {
         private Cursor mCursor;

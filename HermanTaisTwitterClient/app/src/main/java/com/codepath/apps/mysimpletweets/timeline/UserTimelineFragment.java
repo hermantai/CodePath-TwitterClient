@@ -26,6 +26,10 @@ import java.util.List;
 public class UserTimelineFragment extends TimelineFragment {
     private User mUser;
 
+    public static UserTimelineFragment newInstance() {
+        return new UserTimelineFragment();
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -143,11 +147,16 @@ public class UserTimelineFragment extends TimelineFragment {
 
     @Override
     protected Cursor fetchTweetsCursor() {
-        return null;
+        return UserTweet.fetchTweetsCursorForTimeline();
     }
 
     @Override
     protected String getNewestFetchedIdFieldInPrefs() {
         return SimpleTweetsPrefs.PREF_NEWEST_USER_TIMELINE_FETCHED_ID;
+    }
+
+    @Override
+    protected void setNewestFetchedId(Context context, long id) {
+        SimpleTweetsPrefs.setNewestUserTimelineFetchedId(context, id);
     }
 }

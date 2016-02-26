@@ -22,6 +22,7 @@ import com.astuetz.PagerSlidingTabStrip;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.profile.ProfileActivity;
+import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -109,7 +110,7 @@ public class TimelineActivity extends AppCompatActivity {
 
         switch(itemId) {
             case R.id.miProfile:
-                Intent i = ProfileActivity.newIntent(this);
+                Intent i = ProfileActivity.newIntent(this, SimpleTweetsPrefs.getUser(this));
                 startActivity(i);
                 return true;
             default:

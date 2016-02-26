@@ -279,4 +279,9 @@ public class HomeTimelineFragment extends TimelineFragment {
     protected String getNewestFetchedIdFieldInPrefs() {
         return SimpleTweetsPrefs.PREF_NEWEST_HOME_FETCHED_ID;
     }
+
+    @Override
+    protected void setNewestFetchedId(Context context, long id) {
+        SimpleTweetsPrefs.setNewestHomeFetchedId(context, id);
+    }
 }

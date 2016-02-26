@@ -295,4 +295,9 @@ public class MentionsTimelineFragment extends TimelineFragment {
     protected String getNewestFetchedIdFieldInPrefs() {
         return SimpleTweetsPrefs.PREF_NEWEST_MENTIONS_FETCHED_ID;
     }
+
+    @Override
+    protected void setNewestFetchedId(Context context, long id) {
+        SimpleTweetsPrefs.setNewestMentionsFetchedId(context, id);
+    }
 }

@@ -2,17 +2,17 @@
 
 **Simple Tweets** is an android app that allows a user to view home and mentions timelines, view user profiles with user timelines, as well as compose and post a new tweet. The app utilizes [Twitter REST API](https://dev.twitter.com/rest/public).
 
-Time spent: **5** hours spent in total
+Time spent: **6** hours spent in total
 
 ## User Stories
 
 The following **required** functionality is completed:
 
-* [ ] The app includes **all required user stories** from Week 3 Twitter Client
-* [ ] User can **switch between Timeline and Mention views using tabs**
-  * [ ] User can view their home timeline tweets.
-  * [ ] User can view the recent mentions of their username.
-* [ ] User can navigate to **view their own profile**
+* [x] The app includes **all required user stories** from Week 3 Twitter Client
+* [x] User can **switch between Timeline and Mention views using tabs**
+  * [x] User can view their home timeline tweets.
+  * [x] User can view the recent mentions of their username.
+* [x] User can navigate to **view their own profile**
   * [ ] User can see picture, tagline, # of followers, # of following, and tweets on their profile.
 * [ ] User can **click on the profile image** in any tweet to see **another user's** profile.
  * [ ] User can see picture, tagline, # of followers, # of following, and tweets of clicked user.
@@ -33,9 +33,9 @@ The following **optional** features are implemented:
 
 The following **bonus** features are implemented:
 
-* [ ] Use Parcelable instead of Serializable using the popular [Parceler library](http://guides.codepath.com/android/Using-Parceler).
-* [ ] Apply the popular [Butterknife annotation library](http://guides.codepath.com/android/Reducing-View-Boilerplate-with-Butterknife) to reduce view boilerplate.
-* [ ] Leverage the popular [GSON library](http://guides.codepath.com/android/Using-Android-Async-Http-Client#decoding-with-gson-library) to streamline the parsing of JSON data.
+* [x] Use Parcelable instead of Serializable using the popular [Parceler library](http://guides.codepath.com/android/Using-Parceler). (Use the Android Studio plugin instead)
+* [x] Apply the popular [Butterknife annotation library](http://guides.codepath.com/android/Reducing-View-Boilerplate-with-Butterknife) to reduce view boilerplate.
+* [x] Leverage the popular [GSON library](http://guides.codepath.com/android/Using-Android-Async-Http-Client#decoding-with-gson-library) to streamline the parsing of JSON data.
 * [ ] User can view their direct messages (or send new ones)
 
 The following **additional** features are implemented:

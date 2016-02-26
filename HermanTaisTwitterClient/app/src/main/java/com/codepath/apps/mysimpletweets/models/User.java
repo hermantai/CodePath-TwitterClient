@@ -5,6 +5,7 @@ import android.os.Parcelable;
 
 import com.codepath.apps.mysimpletweets.Common;
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 
 import org.json.JSONObject;
 
@@ -44,6 +45,10 @@ public class User implements Parcelable {
     private long mUid;
     private String mScreenName;
     private String mProfileImageUrl;
+    private String mDescription;
+    private int mFollowersCount;
+    @SerializedName("friends_count")
+    private int mFollowingCount;
 
     public static User fromJson(JSONObject jsonObject) {
         Gson gson = Common.getGson();
@@ -67,6 +72,21 @@ public class User implements Parcelable {
         return mProfileImageUrl;
     }
 
+    public String getDescription() {
+        return mDescription;
+    }
+
+    public int getFollowersCount() {
+        return mFollowersCount;
+    }
+
+    public int getFollowingCount() {
+        return mFollowingCount;
+    }
+
+    public User() {
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -78,9 +98,9 @@ public class User implements Parcelable {
         dest.writeLong(this.mUid);
         dest.writeString(this.mScreenName);
         dest.writeString(this.mProfileImageUrl);
-    }
-
-    public User() {
+        dest.writeString(this.mDescription);
+        dest.writeInt(this.mFollowersCount);
+        dest.writeInt(this.mFollowingCount);
     }
 
     protected User(Parcel in) {
@@ -88,9 +108,12 @@ public class User implements Parcelable {
         this.mUid = in.readLong();
         this.mScreenName = in.readString();
         this.mProfileImageUrl = in.readString();
+        this.mDescription = in.readString();
+        this.mFollowersCount = in.readInt();
+        this.mFollowingCount = in.readInt();
     }
 
-    public static final Parcelable.Creator<User> CREATOR = new Parcelable.Creator<User>() {
+    public static final Creator<User> CREATOR = new Creator<User>() {
         public User createFromParcel(Parcel source) {
             return new User(source);
         }
