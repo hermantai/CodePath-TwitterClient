@@ -47,7 +47,7 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
     @Bind(R.id.pbLoading) ProgressBar mPbLoading;
 
     protected TwitterClient mClient;
-    protected TweetsAdapter mTweetsAdapter;
+    protected TweetsAbstractAdapter<? extends RecyclerView.ViewHolder> mTweetsAdapter;
     protected EndlessRecyclerViewScrollListener mEndlessRecyclerViewScrollListener;
 
     protected boolean mStartedLoadingMore = false;
@@ -67,7 +67,7 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
 
         Activity activity = getActivity();
 
-        mTweetsAdapter = new TweetsAdapter(activity);
+        mTweetsAdapter = getTweetsAdapter();
         int itemCount = mTweetsAdapter.getItemCount();
         if (itemCount != 0) {
             setNewestFetchedId(
@@ -176,6 +176,10 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
         rvTweets.smoothScrollToPosition(0);
     }
 
+    protected TweetsAbstractAdapter<? extends RecyclerView.ViewHolder> getTweetsAdapter() {
+        return new TweetsAdapter(getActivity());
+    }
+
     /**
      * Send an API request to get new tweets from the timeline json
      */
@@ -217,49 +221,14 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
 
     protected abstract void setNewestFetchedId(Context context, long id);
 
-    class TweetsAdapter extends RecyclerView.Adapter<TweetViewHolder> {
+    public abstract class TweetsAbstractAdapter<VH extends RecyclerView.ViewHolder>
+            extends RecyclerView.Adapter<VH> {
         private Cursor mCursor;
-        private Context mContext;
+        protected Context mContext;
 
-        public TweetsAdapter(Context context) {
+        public TweetsAbstractAdapter(Context context) {
             mCursor = TimelineFragment.this.fetchTweetsCursor();
             mContext = context;
-        }
-
-        @Override
-        public TweetViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(mContext).inflate(R.layout.item_tweet, parent, false);
-
-            TweetViewHolder vh = new TweetViewHolder(
-                    v,
-                    new TweetViewHolder.ShowMoreOnClickListener() {
-                        @Override
-                        public void onClick(TweetInterface tweet, long prevTweetId) {
-                            TimelineFragment.this.fetchOlderTweetsForTimelineGap(tweet,
-                                    prevTweetId);
-                        }
-                    },
-                    new TweetViewHolder.TweetUpdater() {
-                        @Override
-                        public void updateTweet(TweetInterface tweet) {
-                            TweetsAdapter.this.updateTweet(tweet);
-                        }
-                    },
-                    new TweetViewHolder.TweetOnClickListener(){
-                        @Override
-                        public void onClick(int position, TweetInterface tweet) {
-                            Intent i = TweetDetailActivity.newIntent(
-                                    mContext, position, tweet, getNewestFetchedIdFieldInPrefs());
-                            startActivityForResult(i, REQUEST_DETAIL);
-                        }
-                    });
-            return vh;
-        }
-
-        @Override
-        public void onBindViewHolder(TweetViewHolder holder, int position) {
-            TweetInterface tweet = getItem(position);;
-            holder.bindTweet(mContext, position, tweet);
         }
 
         @Override
@@ -325,6 +294,48 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
                 mCursor = TimelineFragment.this.fetchTweetsCursor();
                 notifyDataSetChanged();
             }
+        }
+    }
+
+    class TweetsAdapter extends TweetsAbstractAdapter<TweetViewHolder> {
+        public TweetsAdapter(Context context) {
+            super(context);
+        }
+
+        @Override
+        public TweetViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View v = LayoutInflater.from(mContext).inflate(R.layout.item_tweet, parent, false);
+
+            TweetViewHolder vh = new TweetViewHolder(
+                    v,
+                    new TweetViewHolder.ShowMoreOnClickListener() {
+                        @Override
+                        public void onClick(TweetInterface tweet, long prevTweetId) {
+                            TimelineFragment.this.fetchOlderTweetsForTimelineGap(tweet,
+                                    prevTweetId);
+                        }
+                    },
+                    new TweetViewHolder.TweetUpdater() {
+                        @Override
+                        public void updateTweet(TweetInterface tweet) {
+                            TweetsAdapter.this.updateTweet(tweet);
+                        }
+                    },
+                    new TweetViewHolder.TweetOnClickListener(){
+                        @Override
+                        public void onClick(int position, TweetInterface tweet) {
+                            Intent i = TweetDetailActivity.newIntent(
+                                    mContext, position, tweet, getNewestFetchedIdFieldInPrefs());
+                            startActivityForResult(i, REQUEST_DETAIL);
+                        }
+                    });
+            return vh;
+        }
+
+        @Override
+        public void onBindViewHolder(TweetViewHolder holder, int position) {
+            TweetInterface tweet = getItem(position);;
+            holder.bindTweet(mContext, position, tweet);
         }
     }
 }

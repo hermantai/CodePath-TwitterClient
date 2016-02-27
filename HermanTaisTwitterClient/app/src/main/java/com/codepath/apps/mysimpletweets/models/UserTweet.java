@@ -258,8 +258,20 @@ public class UserTweet extends Model implements Parcelable, TweetInterface {
     public static Cursor fetchTweetsCursorForTimeline(long userUid) {
         String resultRecords = new Select()
                 .from(UserTweet.class)
-                // Because we are using rawQuery, the argument should be put in rawQuery, not here
+                        // Because we are using rawQuery, the argument should be put in rawQuery, not here
                 .where("user like ?")
+                .orderBy("uid desc")
+                .toSql();
+        Log.d(Common.INFO_TAG, resultRecords);
+        return Cache.openDatabase().rawQuery(
+                resultRecords, new String[]{ getLikeValueForMatchingUserId(userUid) });
+    }
+
+    public static Cursor fetchTweetsWithMediaCursorForTimeline(long userUid) {
+        String resultRecords = new Select()
+                .from(UserTweet.class)
+                        // Because we are using rawQuery, the argument should be put in rawQuery, not here
+                .where("user like ? and extended_entities is not null")
                 .orderBy("uid desc")
                 .toSql();
         Log.d(Common.INFO_TAG, resultRecords);
@@ -273,6 +285,20 @@ public class UserTweet extends Model implements Parcelable, TweetInterface {
         return new Select()
                 .from(UserTweet.class)
                 .where("uid < ? and user like ?", getUid(), getLikeValueForMatchingUserId(userUid))
+                .orderBy("uid desc")
+                .limit(1)
+                .executeSingle();
+    }
+
+    public TweetInterface fetchTweetWithMediaBefore() {
+        long userUid = mUser.getUid();
+
+        return new Select()
+                .from(UserTweet.class)
+                .where(
+                        "uid < ? and user like ? and extended_entities is not null",
+                        getUid(),
+                        getLikeValueForMatchingUserId(userUid))
                 .orderBy("uid desc")
                 .limit(1)
                 .executeSingle();

@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.timeline.SimpleSmartFragmentStatePagerAdapter;
+import com.codepath.apps.mysimpletweets.timeline.UserMediaTimelineFragment;
 import com.codepath.apps.mysimpletweets.timeline.UserTimelineFragment;
 
 import butterknife.Bind;
@@ -61,7 +62,7 @@ public class ProfileActivity extends AppCompatActivity {
         SimpleSmartFragmentStatePagerAdapter pagerAdapter =
                 new SimpleSmartFragmentStatePagerAdapter(fm)
                         .addFragment(UserTimelineFragment.newInstance(), "Tweets")
-                        .addFragment(UserTimelineFragment.newInstance(), "Media")
+                        .addFragment(UserMediaTimelineFragment.newInstance(), "Media")
                         .addFragment(UserTimelineFragment.newInstance(), "Likes");
 
         mVpUserProfile.setAdapter(pagerAdapter);
