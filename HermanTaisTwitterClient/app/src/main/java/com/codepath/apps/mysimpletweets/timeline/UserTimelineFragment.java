@@ -135,14 +135,154 @@ public class UserTimelineFragment extends TimelineFragment {
     }
 
     @Override
-    protected void fetchOlderTweets(long max_id) {
+    protected void fetchOlderTweets(final long max_id) {
+        final Context context = getActivity();
+        mPbLoading.setVisibility(View.VISIBLE);
+        mClient.getUserTimeline(
+                mUser.getScreenName(),
+                10,
+                0,
+                max_id,
+                new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                        if (BuildConfig.DEBUG) {
+                            LogUtil.d(
+                                    Common.INFO_TAG,
+                                    "fetchOlderUserTweets: " + response.toString());
+                        }
 
+                        // Deserialize JSON
+                        // Create models
+                        List<TweetInterface> newTweets = new ArrayList<TweetInterface>(
+                                UserTweet.fromJsonArray(response));
+                        mTweetsAdapter.appendAll(newTweets);
+
+                        if (mStartedLoadingMore) {
+                            mStartedLoadingMore = false;
+                            if (newTweets.isEmpty()
+                                    && mEndlessRecyclerViewScrollListener != null) {
+                                mEndlessRecyclerViewScrollListener.notifyNoMoreItems();
+                            }
+                        }
+                        mPbLoading.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String
+                            responseString, Throwable throwable) {
+                        if (mStartedLoadingMore && mEndlessRecyclerViewScrollListener != null) {
+                            mStartedLoadingMore = false;
+                            mEndlessRecyclerViewScrollListener.notifyLoadMoreFailed();
+                        }
+
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error retrieving user tweets: " + throwable.getLocalizedMessage(),
+                                throwable);
+                        LogUtil.d(Common.INFO_TAG, responseString);
+                        showSnackBarForNetworkError(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                fetchOlderTweets(max_id);
+                            }
+                        });
+                        mPbLoading.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onFailure(
+                            int statusCode,
+                            Header[] headers,
+                            Throwable throwable,
+                            JSONObject errorResponse) {
+                        if (mStartedLoadingMore && mEndlessRecyclerViewScrollListener != null) {
+                            mStartedLoadingMore = false;
+                            mEndlessRecyclerViewScrollListener.notifyLoadMoreFailed();
+                        }
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error retrieving user tweets: " + throwable.getLocalizedMessage(),
+                                throwable);
+                        LogUtil.d(
+                                Common.INFO_TAG,
+                                errorResponse == null ? "" : errorResponse.toString());
+                        showSnackBarForNetworkError(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                fetchOlderTweets(max_id);
+                            }
+                        });
+                        mPbLoading.setVisibility(View.GONE);
+                    }
+                });
     }
 
     @Override
     protected void fetchOlderTweetsForTimelineGap(
-            TweetInterface tweetWithGapEarlier, long since_id) {
+            final TweetInterface tweetWithGapEarlier, final long since_id) {
+        mPbLoading.setVisibility(View.VISIBLE);
+        mClient.getUserTimeline(
+                mUser.getScreenName(),
+                10,
+                since_id - 1,  // This means we should get the prev tweet back if there is no gap
+                tweetWithGapEarlier.getUid(),
+                new JsonHttpResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                        if (BuildConfig.DEBUG) {
+                            LogUtil.d(
+                                    Common.INFO_TAG,
+                                    "fetchOlderUserTweets: " + response.toString());
+                        }
 
+                        // Deserialize JSON
+                        // Create models
+                        List<TweetInterface> newTweets = new ArrayList<TweetInterface>(
+                                UserTweet.fromJsonArray(response));
+                        mTweetsAdapter.appendAll(newTweets);
+
+                        if (!newTweets.isEmpty()
+                                && newTweets.get(newTweets.size() - 1).getUid() > since_id) {
+                            newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
+                        }
+                        tweetWithGapEarlier.setHasMoreBefore(false);
+                        newTweets.add(tweetWithGapEarlier);
+                        mTweetsAdapter.addAll(newTweets);
+                        mPbLoading.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String
+                            responseString, Throwable throwable) {
+                        ErrorHandling.handleError(
+                                getActivity(),
+                                Common.INFO_TAG,
+                                "Error retrieving user tweets: " + throwable.getLocalizedMessage(),
+                                throwable);
+                        LogUtil.d(Common.INFO_TAG, responseString);
+                        mPbLoading.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onFailure(
+                            int statusCode,
+                            Header[] headers,
+                            Throwable throwable,
+                            JSONObject errorResponse) {
+                        ErrorHandling.handleError(
+                                getActivity(),
+                                Common.INFO_TAG,
+                                "Error retrieving user tweets: " + throwable.getLocalizedMessage(),
+                                throwable);
+                        LogUtil.d(
+                                Common.INFO_TAG,
+                                errorResponse == null ? "" : errorResponse.toString());
+                        mPbLoading.setVisibility(View.GONE);
+                    }
+                });
     }
 
     @Override
