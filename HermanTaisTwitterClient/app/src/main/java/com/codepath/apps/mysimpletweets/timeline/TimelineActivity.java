@@ -11,7 +11,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.codepath.apps.mysimpletweets.Common;
@@ -58,6 +58,7 @@ public class TimelineActivity extends AppCompatActivity {
     private NetworkChangeListener mNetworkChangeListener;
     private ToolbarClickListener mToolbarClickListener;
     private FloatingActionButtonClickListener mFloatingActionButtonClickListener;
+    private ViewPager.OnPageChangeListener mOnPageChangeListener;
 
     @Override
     protected void onStart() {
@@ -104,14 +105,69 @@ public class TimelineActivity extends AppCompatActivity {
         });
 
         FragmentManager fm = getSupportFragmentManager();
-        mViewPager.setAdapter(new TweetsPagerAdapter(fm));
+        final TweetsPagerAdapter adapter = new TweetsPagerAdapter(fm);
+        mViewPager.setAdapter(adapter);
+
+        mOnPageChangeListener = new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(
+                    int position, float positionOffset, int positionOffsetPixels) {
+                // do nothing
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                mFab.setVisibility(View.GONE);
+
+                Fragment frag = adapter.getRegisteredFragment(position);
+                if (frag instanceof HomeTimelineFragment) {
+                    HomeTimelineFragment homeTimelineFragment = (HomeTimelineFragment) frag;
+                    mFab.setVisibility(View.VISIBLE);
+
+                    mNetworkChangeListener = homeTimelineFragment;
+                    mToolbarClickListener = homeTimelineFragment;
+                    mFloatingActionButtonClickListener = homeTimelineFragment;
+                } else if (frag instanceof MentionsTimelineFragment) {
+                    MentionsTimelineFragment mentionsTimelineFragment =
+                            (MentionsTimelineFragment) frag;
+
+                    mNetworkChangeListener = mentionsTimelineFragment;
+                    mToolbarClickListener = mentionsTimelineFragment;
+                    mFloatingActionButtonClickListener = mentionsTimelineFragment;
+                } else {
+                    throw new RuntimeException(
+                            "Impossible fragment: " + frag + " at position " + position);
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                // do nothing
+            }
+        };
+
+        mViewPager.addOnPageChangeListener(mOnPageChangeListener);
         mTabStrip.setViewPager(mViewPager);
 
-        // TODO: need to do something similar to below to set the listeners
-        // TimelineFragment frag = new MentionsTimelineFragment(); //new HomeTimelineFragment();
-        // mNetworkChangeListener = frag;
-        // mToolbarClickListener = frag;
-        // mFloatingActionButtonClickListener = frag;
+        // Trigger the ViewPager's OnPageChangeListener once at the beginning to set up the
+        // UI right after the ViewPager is rendered.
+        ViewTreeObserver observer = mViewPager.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                mViewPager.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                mOnPageChangeListener.onPageSelected(0);
+            }
+        });
+
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Have to let the ViewPager instantiates all the items after the creation of the view
+        // and stuff before calling onPageSelected
+        // mOnPageChangeListener.onPageSelected(0);
     }
 
     @Override
@@ -188,7 +244,7 @@ public class TimelineActivity extends AppCompatActivity {
         }
     }
 
-    public class TweetsPagerAdapter extends FragmentPagerAdapter {
+    private class TweetsPagerAdapter extends SmartFragmentStatePagerAdapter {
         final int PAGE_COUNT = 2;
         private String tabTitles[] = {"Home", "Mentions"};
 
