@@ -15,10 +15,9 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.ImageView;
 
 import com.astuetz.PagerSlidingTabStrip;
 import com.codepath.apps.mysimpletweets.Common;
@@ -42,6 +41,8 @@ public class TimelineActivity extends AppCompatActivity {
     @Bind(R.id.fab) FloatingActionButton mFab;
     @Bind(R.id.viewPager) ViewPager mViewPager;
     @Bind(R.id.tabStrip) PagerSlidingTabStrip mTabStrip;
+
+    @Bind(R.id.ivTimelineProfile) ImageView mIvTimelineProfile;
 
     protected TwitterClient mClient;
 
@@ -104,6 +105,15 @@ public class TimelineActivity extends AppCompatActivity {
             }
         });
 
+        mIvTimelineProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = ProfileActivity.newIntent(
+                        TimelineActivity.this, SimpleTweetsPrefs.getUser(TimelineActivity.this));
+                startActivity(i);
+            }
+        });
+
         FragmentManager fm = getSupportFragmentManager();
         final TweetsPagerAdapter adapter = new TweetsPagerAdapter(fm);
         mViewPager.setAdapter(adapter);
@@ -162,33 +172,25 @@ public class TimelineActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        // Have to let the ViewPager instantiates all the items after the creation of the view
-        // and stuff before calling onPageSelected
-        // mOnPageChangeListener.onPageSelected(0);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_timeline, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
-
-        switch(itemId) {
-            case R.id.miProfile:
-                Intent i = ProfileActivity.newIntent(this, SimpleTweetsPrefs.getUser(this));
-                startActivity(i);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        getMenuInflater().inflate(R.menu.menu_timeline, menu);
+//        return true;
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        int itemId = item.getItemId();
+//
+//        switch(itemId) {
+//            case R.id.miProfile:
+//                Intent i = ProfileActivity.newIntent(this, SimpleTweetsPrefs.getUser(this));
+//                startActivity(i);
+//                return true;
+//            default:
+//                return super.onOptionsItemSelected(item);
+//        }
+//    }
 
     private void refreshUser() {
         mClient.getCurrentUser(new JsonHttpResponseHandler() {
