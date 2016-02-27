@@ -1,5 +1,4 @@
 <resources>
-
     <style name="AppBaseTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!--
             Theme customizations available in newer API levels can go in
@@ -52,5 +51,14 @@
     <style name="FullScreenVideoTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <!-- Theme for Profile TabLayout -->
+    <style name="UserProfileTabLayout" parent="Widget.Design.TabLayout">
+        <item name="tabTextAppearance">@style/TextAllCapsFalse</item>
+    </style>
+
+    <style name="TextAllCapsFalse" parent="TextAppearance.Design.Tab">
+        <item name="textAllCaps">false</item>
     </style>
 </resources>

@@ -2,7 +2,7 @@
 
 **Simple Tweets** is an android app that allows a user to view home and mentions timelines, view user profiles with user timelines, as well as compose and post a new tweet. The app utilizes [Twitter REST API](https://dev.twitter.com/rest/public).
 
-Time spent: **8** hours spent in total
+Time spent: **8.75** hours spent in total
 
 ## User Stories
 
@@ -17,7 +17,7 @@ The following **required** functionality is completed:
 * [ ] User can **click on the profile image** in any tweet to see **another user's** profile.
  * [ ] User can see picture, tagline, # of followers, # of following, and tweets of clicked user.
  * [ ] Profile view includes that user's timeline
-* [ ] User can [infinitely paginate](http://guides.codepath.com/android/Endless-Scrolling-with-AdapterViews-and-RecyclerView) any of these timelines (home, mentions, user) by scrolling to the bottom
+* [x] User can [infinitely paginate](http://guides.codepath.com/android/Endless-Scrolling-with-AdapterViews-and-RecyclerView) any of these timelines (home, mentions, user) by scrolling to the bottom
 
 The following **optional** features are implemented:
 

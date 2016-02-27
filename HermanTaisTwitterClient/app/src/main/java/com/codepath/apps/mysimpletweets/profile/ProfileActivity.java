@@ -3,7 +3,9 @@ package com.codepath.apps.mysimpletweets.profile;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -11,6 +13,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.models.User;
+import com.codepath.apps.mysimpletweets.timeline.SimpleSmartFragmentStatePagerAdapter;
 import com.codepath.apps.mysimpletweets.timeline.UserTimelineFragment;
 
 import butterknife.Bind;
@@ -24,6 +27,8 @@ public class ProfileActivity extends AppCompatActivity {
     @Bind(R.id.tvUserProfileTagline) TextView mUserProfileTagline;
     @Bind(R.id.tvUserProfileFollowersCount) TextView mTvUserProfileFollowersCount;
     @Bind(R.id.tvUserProfileFollowingCount) TextView mTvUserProfileFollowingCount;
+    @Bind(R.id.tlUserProfile) TabLayout mTlUserProfile;
+    @Bind(R.id.vpUserProfile) ViewPager mVpUserProfile;
 
     private User mUser;
 
@@ -52,13 +57,15 @@ public class ProfileActivity extends AppCompatActivity {
 
         getSupportActionBar().setTitle("@" + mUser.getScreenName());
 
-        if (savedInstanceState == null) {
-            UserTimelineFragment frag = UserTimelineFragment.newInstance();
-            FragmentManager fm = getSupportFragmentManager();
-            fm.beginTransaction()
-                    .add(R.id.flUserTimelineFragmentContainer, frag)
-                    .commit();
-        }
+        FragmentManager fm = getSupportFragmentManager();
+        SimpleSmartFragmentStatePagerAdapter pagerAdapter =
+                new SimpleSmartFragmentStatePagerAdapter(fm)
+                        .addFragment(UserTimelineFragment.newInstance(), "Tweets")
+                        .addFragment(UserTimelineFragment.newInstance(), "Media")
+                        .addFragment(UserTimelineFragment.newInstance(), "Likes");
+
+        mVpUserProfile.setAdapter(pagerAdapter);
+        mTlUserProfile.setupWithViewPager(mVpUserProfile);
     }
 
 
