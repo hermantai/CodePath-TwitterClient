@@ -25,8 +25,6 @@ import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.SimpleTweetsApplication;
 import com.codepath.apps.mysimpletweets.compose.ComposeFragment;
-import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
-import com.codepath.apps.mysimpletweets.helpers.LogUtil;
 import com.codepath.apps.mysimpletweets.helpers.NetworkUtil;
 import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.TweetInterface;
@@ -34,10 +32,6 @@ import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
 import com.codepath.apps.mysimpletweets.tweetdetail.TweetDetailActivity;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
-
-import org.apache.http.Header;
-import org.json.JSONObject;
 
 import java.util.List;
 
@@ -106,7 +100,6 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
             @Override
             public void onRefresh() {
                 fetchNewerTweets();
-                refreshUser();
             }
         });
         mSwipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
@@ -116,7 +109,6 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
 
         if (NetworkUtil.isNetworkAvailable(activity)) {
             fetchNewerTweets();
-            refreshUser();
         }
 
         return v;
@@ -206,43 +198,6 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
     protected abstract void fetchOlderTweetsForTimelineGap(
             final TweetInterface tweetWithGapEarlier,
             final long since_id);
-
-    private void refreshUser() {
-        mClient.getCurrentUser(new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                SimpleTweetsPrefs.setUser(getActivity(), User.fromJson(response));
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString,
-                                  Throwable throwable) {
-                ErrorHandling.handleError(
-                        getActivity(),
-                        Common.INFO_TAG,
-                        "Error loading newest user info: " + throwable.getLocalizedMessage(),
-                        throwable);
-                LogUtil.d(Common.INFO_TAG, responseString);
-            }
-
-            @Override
-            public void onFailure(
-                    int statusCode, Header[] headers, Throwable throwable, JSONObject
-                    errorResponse) {
-                ErrorHandling.handleError(
-                        getActivity(),
-                        Common.INFO_TAG,
-                        "Error retrieving newest user info: " + throwable.getLocalizedMessage(),
-                        throwable);
-                showSnackBarForNetworkError(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        refreshUser();
-                    }
-                });
-            }
-        });
-    }
 
     protected void showSnackBarForNetworkError(View.OnClickListener listener) {
         if(!NetworkUtil.isNetworkAvailable(getActivity())) {

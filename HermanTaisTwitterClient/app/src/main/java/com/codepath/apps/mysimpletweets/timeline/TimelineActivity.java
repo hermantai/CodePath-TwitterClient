@@ -4,9 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -21,8 +23,17 @@ import android.view.View;
 import com.astuetz.PagerSlidingTabStrip;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
+import com.codepath.apps.mysimpletweets.SimpleTweetsApplication;
+import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
+import com.codepath.apps.mysimpletweets.helpers.NetworkUtil;
+import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.profile.ProfileActivity;
 import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
+import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+import org.apache.http.Header;
+import org.json.JSONObject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -31,6 +42,8 @@ public class TimelineActivity extends AppCompatActivity {
     @Bind(R.id.fab) FloatingActionButton mFab;
     @Bind(R.id.viewPager) ViewPager mViewPager;
     @Bind(R.id.tabStrip) PagerSlidingTabStrip mTabStrip;
+
+    protected TwitterClient mClient;
 
     private BroadcastReceiver mNetworkChangeReceiver = new BroadcastReceiver() {
         @Override
@@ -63,6 +76,9 @@ public class TimelineActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timeline);
+
+        mClient = SimpleTweetsApplication.getRestClient();
+        refreshUser();
 
         ButterKnife.bind(this);
 
@@ -115,6 +131,60 @@ public class TimelineActivity extends AppCompatActivity {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void refreshUser() {
+        mClient.getCurrentUser(new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                SimpleTweetsPrefs.setUser(TimelineActivity.this, User.fromJson(response));
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString,
+                                  Throwable throwable) {
+                ErrorHandling.handleError(
+                        TimelineActivity.this,
+                        Common.INFO_TAG,
+                        "Error loading newest user info: " + throwable.getLocalizedMessage(),
+                        throwable);
+                showSnackBarForNetworkError(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        refreshUser();
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(
+                    int statusCode, Header[] headers, Throwable throwable, JSONObject
+                    errorResponse) {
+                ErrorHandling.handleError(
+                        TimelineActivity.this,
+                        Common.INFO_TAG,
+                        "Error retrieving newest user info: " + throwable.getLocalizedMessage(),
+                        throwable);
+                showSnackBarForNetworkError(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        refreshUser();
+                    }
+                });
+            }
+        });
+    }
+
+    private void showSnackBarForNetworkError(View.OnClickListener listener) {
+        if(!NetworkUtil.isNetworkAvailable(this)) {
+            Snackbar.make(
+                    mTabStrip,
+                    "Network error when loading user!",
+                    Snackbar.LENGTH_INDEFINITE)
+                    .setAction("Reload", listener)
+                    .setActionTextColor(Color.YELLOW)
+                    .show();
         }
     }
 
