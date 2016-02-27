@@ -147,7 +147,7 @@ public class UserTimelineFragment extends TimelineFragment {
 
     @Override
     protected Cursor fetchTweetsCursor() {
-        return UserTweet.fetchTweetsCursorForTimeline();
+        return UserTweet.fetchTweetsCursorForTimeline(mUser.getUid());
     }
 
     @Override

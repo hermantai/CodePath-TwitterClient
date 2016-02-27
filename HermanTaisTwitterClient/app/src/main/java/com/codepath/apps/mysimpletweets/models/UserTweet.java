@@ -93,6 +93,7 @@ package com.codepath.apps.mysimpletweets.models;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.activeandroid.ActiveAndroid;
 import com.activeandroid.Cache;
@@ -254,21 +255,31 @@ public class UserTweet extends Model implements Parcelable, TweetInterface {
     public UserTweet() {
     }
 
-    public static Cursor fetchTweetsCursorForTimeline() {
+    public static Cursor fetchTweetsCursorForTimeline(long userUid) {
         String resultRecords = new Select()
                 .from(UserTweet.class)
+                // Because we are using rawQuery, the argument should be put in rawQuery, not here
+                .where("user like ?")
                 .orderBy("uid desc")
                 .toSql();
-        return Cache.openDatabase().rawQuery(resultRecords, new String[]{});
+        Log.d(Common.INFO_TAG, resultRecords);
+        return Cache.openDatabase().rawQuery(
+                resultRecords, new String[]{ getLikeValueForMatchingUserId(userUid) });
     }
 
     public TweetInterface fetchTweetBefore() {
+        long userUid = mUser.getUid();
+
         return new Select()
                 .from(UserTweet.class)
-                .where("uid < ?", getUid())
+                .where("uid < ? and user like ?", getUid(), getLikeValueForMatchingUserId(userUid))
                 .orderBy("uid desc")
                 .limit(1)
                 .executeSingle();
+    }
+
+    private static String getLikeValueForMatchingUserId(long userUid) {
+        return "%\"id\":" + userUid + "%";
     }
 
     @Override
