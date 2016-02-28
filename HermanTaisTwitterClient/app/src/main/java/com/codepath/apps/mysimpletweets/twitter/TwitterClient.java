@@ -192,12 +192,10 @@ public class TwitterClient extends OAuthBaseClient {
     }
 
     /**
-     * Get the mentions of the authenticated user. Mention is like a Tweet but with
-     * the user mentioned in the tweet.
-     * Get statuses/mentions_timeline.json
+     * Get the tweets posted by the given user.
      * The json lists the tweets in timestamp descending order.
      *
-     * @param screenName Screen of the user
+     * @param screenName Screen name of the user
      * @param count
      * @param since_id The ID of the oldest tweet to retrieve, exclusive. Use 0 if just want to get
      *                 the newest tweets.
@@ -227,5 +225,103 @@ public class TwitterClient extends OAuthBaseClient {
         }
 
         getClient().get(apiUrl, params, handler);
+    }
+
+    /**
+     * Get the tweets liked by the given user.
+     * The json lists the tweets in timestamp descending order.
+     *
+     * @param screenName Screen name of the user
+     * @param count
+     * @param since_id The ID of the oldest tweet to retrieve, exclusive. Use 0 if just want to get
+     *                 the newest tweets.
+     * @param max_id The ID of the newest tweet to retrieve, exclusive. Use 0 if not setting a
+     *               limit.
+     * @param handler
+     */
+    public void getLikedTweets(
+            String screenName,
+            int count,
+            long since_id,
+            long max_id,
+            AsyncHttpResponseHandler handler) {
+        String apiUrl = getApiUrl("favorites/list.json");
+
+        // Specify the params
+        RequestParams params = new RequestParams();
+        params.put("screen_name", screenName);
+        params.put("count", count);
+        if (since_id > 0) {
+            params.put("since_id", since_id);
+        }
+        if (max_id != 0) {
+            // The max_id in the API is actually inclusive, so we adjust it here to make our API
+            // cleaner.
+            params.put("max_id", max_id - 1);
+        }
+
+        getClient().get(apiUrl, params, handler);
+    }
+
+    /**
+     * Get at most 200 followers of the authenticated user
+     * @param handler
+     */
+    public void getFollowers(
+            AsyncHttpResponseHandler handler) {
+        String apiUrl = getApiUrl("followers/list.json");
+        RequestParams params = new RequestParams();
+        params.put("count", 200);
+        getClient().get(apiUrl, params, handler);
+    }
+
+    /**
+     * Get at most 200 friends (following) of the authenticated user
+     * @param handler
+     */
+    public void getFriends(
+            AsyncHttpResponseHandler handler) {
+        String apiUrl = getApiUrl("friends/list.json");
+        RequestParams params = new RequestParams();
+        params.put("count", 200);
+        getClient().get(apiUrl, params, handler);
+    }
+
+    /**
+     * Get at most 200 received messages of the authenticated user
+     * @param handler
+     */
+    public void getReceivedMessages(
+            AsyncHttpResponseHandler handler) {
+        String apiUrl = getApiUrl("direct_messages.json");
+        RequestParams params = new RequestParams();
+        params.put("count", 200);
+        getClient().get(apiUrl, params, handler);
+    }
+
+    /**
+     * Get at most 200 sent messages of the authenticated user
+     * @param handler
+     */
+    public void getSentMessages(
+            AsyncHttpResponseHandler handler) {
+        String apiUrl = getApiUrl("direct_messages/sent.json");
+        RequestParams params = new RequestParams();
+        params.put("count", 200);
+        getClient().get(apiUrl, params, handler);
+    }
+
+    public void sendMessage(
+            String screenName,
+            CharSequence text,
+            AsyncHttpResponseHandler handler) {
+        String apiUrl = getApiUrl("direct_messages/new.json");
+
+        // Specify the params
+        RequestParams params = new RequestParams();
+        params.put("screen_name", screenName);
+        params.put("text", text);
+
+        getClient().post(apiUrl, params, handler);
     }
 }
