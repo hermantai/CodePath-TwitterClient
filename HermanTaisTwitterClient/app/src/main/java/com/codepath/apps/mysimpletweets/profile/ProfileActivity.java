@@ -68,6 +68,4 @@ public class ProfileActivity extends AppCompatActivity {
         mVpUserProfile.setAdapter(pagerAdapter);
         mTlUserProfile.setupWithViewPager(mVpUserProfile);
     }
-
-
 }

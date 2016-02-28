@@ -1,6 +1,7 @@
 package com.codepath.apps.mysimpletweets.tweetdetail;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -38,6 +39,7 @@ import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
 import com.codepath.apps.mysimpletweets.showvideo.VideoActivity;
 import com.codepath.apps.mysimpletweets.timeline.TweetViewHolder;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
+import com.codepath.apps.mysimpletweets.widgets.SimpleProgressDialog;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
 import org.apache.http.Header;
@@ -361,6 +363,9 @@ public class TweetDetailFragment extends Fragment {
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                final ProgressDialog progressDialog = SimpleProgressDialog.createProgressDialog(
+                        getActivity());
+
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // unlike.
                 Context context = TweetDetailFragment.this.getActivity();
@@ -375,6 +380,7 @@ public class TweetDetailFragment extends Fragment {
                         Log.d(Common.INFO_TAG, "Unliked tweet: " + mTweet);
                         setNotLiked(imageView);
                         refreshTweet();
+                        progressDialog.dismiss();
                     }
 
                     @Override
@@ -386,6 +392,19 @@ public class TweetDetailFragment extends Fragment {
                                 Common.INFO_TAG,
                                 "Error unliking the tweet",
                                 throwable);
+                        progressDialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String
+                            responseString, Throwable throwable) {
+                        Context context = getActivity();
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error unliking the tweet",
+                                throwable);
+                        progressDialog.dismiss();
                     }
                 });
             }
@@ -397,6 +416,9 @@ public class TweetDetailFragment extends Fragment {
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                final ProgressDialog progressDialog = SimpleProgressDialog.createProgressDialog(
+                        getActivity());
+
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // like.
                 Context context = TweetDetailFragment.this.getActivity();
@@ -411,6 +433,7 @@ public class TweetDetailFragment extends Fragment {
                         Log.d(Common.INFO_TAG, "Liked tweet: " + mTweet);
                         setLiked(imageView);
                         refreshTweet();
+                        progressDialog.dismiss();
                     }
 
                     @Override
@@ -422,6 +445,19 @@ public class TweetDetailFragment extends Fragment {
                                 Common.INFO_TAG,
                                 "Error liking the tweet",
                                 throwable);
+                        progressDialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String
+                            responseString, Throwable throwable) {
+                        Context context = getActivity();
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error liking the tweet",
+                                throwable);
+                        progressDialog.dismiss();
                     }
                 });
             }
@@ -433,6 +469,9 @@ public class TweetDetailFragment extends Fragment {
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                final ProgressDialog progressDialog = SimpleProgressDialog.createProgressDialog(
+                        getActivity());
+
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // unretweet.
                 Context context = TweetDetailFragment.this.getActivity();
@@ -447,6 +486,7 @@ public class TweetDetailFragment extends Fragment {
                         Log.d(Common.INFO_TAG, "Unretweeted tweet: " + mTweet);
                         setNotRetweeted(imageView);
                         refreshTweet();
+                        progressDialog.dismiss();
                     }
 
                     @Override
@@ -458,6 +498,19 @@ public class TweetDetailFragment extends Fragment {
                                 Common.INFO_TAG,
                                 "Error unretweeting the tweet",
                                 throwable);
+                        progressDialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String
+                            responseString, Throwable throwable) {
+                        Context context = getActivity();
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error unretweeting the tweet",
+                                throwable);
+                        progressDialog.dismiss();
                     }
                 });
             }
@@ -469,6 +522,9 @@ public class TweetDetailFragment extends Fragment {
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                final ProgressDialog progressDialog = SimpleProgressDialog.createProgressDialog(
+                        getActivity());
+
                 // Make sure next time we refresh this tweet, in case we cannot make it after the
                 // retweet.
                 Context context = TweetDetailFragment.this.getActivity();
@@ -483,6 +539,7 @@ public class TweetDetailFragment extends Fragment {
                         Log.d(Common.INFO_TAG, "Retweeted tweet: " + mTweet);
                         setRetweeted(imageView);
                         refreshTweet();
+                        progressDialog.dismiss();
                     }
 
                     @Override
@@ -494,6 +551,19 @@ public class TweetDetailFragment extends Fragment {
                                 Common.INFO_TAG,
                                 "Error retweeting the tweet",
                                 throwable);
+                        progressDialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String
+                            responseString, Throwable throwable) {
+                        Context context = getActivity();
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error retweeting the tweet",
+                                throwable);
+                        progressDialog.dismiss();
                     }
                 });
             }

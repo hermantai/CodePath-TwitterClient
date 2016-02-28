@@ -1,6 +1,7 @@
 package com.codepath.apps.mysimpletweets.reply;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -21,6 +22,7 @@ import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.TweetInterface;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
+import com.codepath.apps.mysimpletweets.widgets.SimpleProgressDialog;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
 import org.apache.http.Header;
@@ -75,6 +77,8 @@ public class ReplyFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 mTvReplySend.setEnabled(false);
+                final ProgressDialog progressDialog = SimpleProgressDialog.createProgressDialog(
+                        getActivity());
                 CharSequence tweet = mEtReplyTweet.getText();
                 mClient.replyStatus(tweet, mTweet.getUid(), new JsonHttpResponseHandler() {
                     @Override
@@ -89,6 +93,7 @@ public class ReplyFragment extends DialogFragment {
                                 getTargetRequestCode(),
                                 Activity.RESULT_OK,
                                 null);
+                        progressDialog.dismiss();
                         ReplyFragment.this.dismiss();
                     }
 
@@ -103,6 +108,21 @@ public class ReplyFragment extends DialogFragment {
                                 Common.INFO_TAG,
                                 "Error replying the tweet: " + throwable.getLocalizedMessage(),
                                 throwable);
+                        progressDialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String
+                            responseString, Throwable throwable) {
+                        mTvReplySend.setEnabled(true);
+
+                        Context context = getActivity();
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error replying the tweet: " + throwable.getLocalizedMessage(),
+                                throwable);
+                        progressDialog.dismiss();
                     }
                 });
             }

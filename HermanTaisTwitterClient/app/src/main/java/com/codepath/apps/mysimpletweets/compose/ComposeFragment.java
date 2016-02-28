@@ -1,5 +1,6 @@
 package com.codepath.apps.mysimpletweets.compose;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -17,6 +18,7 @@ import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
+import com.codepath.apps.mysimpletweets.widgets.SimpleProgressDialog;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
 import org.apache.http.Header;
@@ -66,6 +68,9 @@ public class ComposeFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 mTvComposeSend.setEnabled(false);
+                final ProgressDialog progressDialog = SimpleProgressDialog.createProgressDialog(
+                        getActivity());
+
                 CharSequence tweet = mEtComposeTweet.getText();
                 mClient.updateStatus(tweet, new JsonHttpResponseHandler() {
                     @Override
@@ -80,6 +85,7 @@ public class ComposeFragment extends DialogFragment {
                             mOnNewTweetHandler.onNewTweet(newTweet);
                         }
 
+                        progressDialog.dismiss();
                         ComposeFragment.this.dismiss();
                     }
 
@@ -94,6 +100,21 @@ public class ComposeFragment extends DialogFragment {
                                 Common.INFO_TAG,
                                 "Error sending the tweet: " + throwable.getLocalizedMessage(),
                                 throwable);
+                        progressDialog.dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, String
+                            responseString, Throwable throwable) {
+                        mTvComposeSend.setEnabled(true);
+
+                        Context context = getActivity();
+                        ErrorHandling.handleError(
+                                context,
+                                Common.INFO_TAG,
+                                "Error sending the tweet: " + throwable.getLocalizedMessage(),
+                                throwable);
+                        progressDialog.dismiss();
                     }
                 });
             }
