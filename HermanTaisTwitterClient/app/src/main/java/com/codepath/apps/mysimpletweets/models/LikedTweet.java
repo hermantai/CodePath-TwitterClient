@@ -24,8 +24,8 @@ import java.util.List;
 /**
  * Parse the json + store the data, encapsulate state logic or display logic
  */
-@Table(name = "mention")
-public class Mention extends Model implements Parcelable, TweetInterface {
+@Table(name = "liked_tweet")
+public class LikedTweet extends Model implements Parcelable, TweetInterface {
     // list out the attributes
 
     @Column(name = "text")
@@ -60,10 +60,14 @@ public class Mention extends Model implements Parcelable, TweetInterface {
     @Column(name = "in_reply_to_status_id", index = true)
     private long mInReplyToStatusId;
 
-    public static Mention fromJson(JSONObject jsonObject) {
+    @Column(name = "for_user_screen_name")
+    private String mForUserScreenName;
+
+    public static LikedTweet fromJson(JSONObject jsonObject, String forUserScreenName) {
         Gson gson = Common.getGson();
-        Mention mention = gson.fromJson(jsonObject.toString(), Mention.class);
-        return mention;
+        LikedTweet likedTweet = gson.fromJson(jsonObject.toString(), LikedTweet.class);
+        likedTweet.mForUserScreenName = forUserScreenName;
+        return likedTweet;
     }
 
     public String getText() {
@@ -94,12 +98,13 @@ public class Mention extends Model implements Parcelable, TweetInterface {
 
     @Override
     public List<TweetInterface> fetchRepliesTweets() {
-        List<Mention> mentions = new Select()
-            .from(Mention.class)
-            .where("in_reply_to_status_id = ?", getUid())
-            .orderBy("uid desc")
-            .execute();
-        return new ArrayList<TweetInterface>(mentions);
+        // TOOD: not really working
+        List<LikedTweet> likedTweets = new Select()
+                .from(LikedTweet.class)
+                .where("in_reply_to_status_id = ?", getUid())
+                .orderBy("uid desc")
+                .execute();
+        return new ArrayList<TweetInterface>(likedTweets);
     }
 
     public Date getCreatedAt() {
@@ -142,18 +147,22 @@ public class Mention extends Model implements Parcelable, TweetInterface {
         return mInReplyToStatusId;
     }
 
-    public static ArrayList<Mention> fromJsonArray(JSONArray jsonArray) {
-        ArrayList<Mention> mentions = new ArrayList<>();
+    public String getForUserScreenName() {
+        return mForUserScreenName;
+    }
+
+    public static ArrayList<LikedTweet> fromJsonArray(JSONArray jsonArray, String forUserScreenName) {
+        ArrayList<LikedTweet> likedTweets = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++ ) {
             try {
-                mentions.add(Mention.fromJson(jsonArray.getJSONObject(i)));
+                likedTweets.add(LikedTweet.fromJson(jsonArray.getJSONObject(i), forUserScreenName));
             } catch (JSONException e) {
                 e.printStackTrace();
                 continue;
             }
         }
 
-        return mentions;
+        return likedTweets;
     }
 
     @Override
@@ -161,21 +170,22 @@ public class Mention extends Model implements Parcelable, TweetInterface {
         return Common.getGson().toJson(this);
     }
 
-    public Mention() {
+    public LikedTweet() {
     }
 
-    public static Cursor fetchTweetsCursorForTimeline() {
+    public static Cursor fetchTweetsCursorForTimeline(String forUserScreenName) {
         String resultRecords = new Select()
-                .from(Mention.class)
+                .from(LikedTweet.class)
+                .where("for_user_screen_name = ?")
                 .orderBy("uid desc")
                 .toSql();
-        return Cache.openDatabase().rawQuery(resultRecords, new String[]{});
+        return Cache.openDatabase().rawQuery(resultRecords, new String[]{forUserScreenName});
     }
 
     public TweetInterface fetchTweetBefore() {
         return new Select()
-                .from(Mention.class)
-                .where("uid < ?", getUid())
+                .from(LikedTweet.class)
+                .where("uid < ? and for_user_screen_name = ?", getUid(), getForUserScreenName())
                 .orderBy("uid desc")
                 .limit(1)
                 .executeSingle();
@@ -199,9 +209,10 @@ public class Mention extends Model implements Parcelable, TweetInterface {
         dest.writeParcelable(this.mExtendedEntities, 0);
         dest.writeByte(mHasMoreBefore ? (byte) 1 : (byte) 0);
         dest.writeLong(this.mInReplyToStatusId);
+        dest.writeString(this.mForUserScreenName);
     }
 
-    protected Mention(Parcel in) {
+    protected LikedTweet(Parcel in) {
         this.mText = in.readString();
         this.mUid = in.readLong();
         this.mUser = in.readParcelable(User.class.getClassLoader());
@@ -214,15 +225,16 @@ public class Mention extends Model implements Parcelable, TweetInterface {
         this.mExtendedEntities = in.readParcelable(ExtendedEntities.class.getClassLoader());
         this.mHasMoreBefore = in.readByte() != 0;
         this.mInReplyToStatusId = in.readLong();
+        this.mForUserScreenName = in.readString();
     }
 
-    public static final Creator<Mention> CREATOR = new Creator<Mention>() {
-        public Mention createFromParcel(Parcel source) {
-            return new Mention(source);
+    public static final Creator<LikedTweet> CREATOR = new Creator<LikedTweet>() {
+        public LikedTweet createFromParcel(Parcel source) {
+            return new LikedTweet(source);
         }
 
-        public Mention[] newArray(int size) {
-            return new Mention[size];
+        public LikedTweet[] newArray(int size) {
+            return new LikedTweet[size];
         }
     };
 }

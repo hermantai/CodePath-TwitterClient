@@ -343,13 +343,13 @@ public class UserTweet extends Model implements Parcelable, TweetInterface {
         this.mInReplyToStatusId = in.readLong();
     }
 
-    public static final Creator<Tweet> CREATOR = new Creator<Tweet>() {
-        public Tweet createFromParcel(Parcel source) {
-            return new Tweet(source);
+    public static final Creator<UserTweet> CREATOR = new Creator<UserTweet>() {
+        public UserTweet createFromParcel(Parcel source) {
+            return new UserTweet(source);
         }
 
-        public Tweet[] newArray(int size) {
-            return new Tweet[size];
+        public UserTweet[] newArray(int size) {
+            return new UserTweet[size];
         }
     };
 }
