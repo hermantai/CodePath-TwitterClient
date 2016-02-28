@@ -159,6 +159,19 @@ public class TweetDetailFragment extends Fragment {
                     SimpleTweetsPrefs.setNewestUserTimelineFetchedId(context, id);
                 }
             };
+        } else if(mNewestFetchedIdFieldInPrefs.equals(SimpleTweetsPrefs
+                .PREF_NEWEST_LIKED_FETCHED_ID)) {
+            mNewestFetchedIdProvider = new TweetDetailFragment.NewestFetchedIdProvider() {
+                @Override
+                public long getNewestFetchedId(Context context) {
+                    return SimpleTweetsPrefs.getNewestLikedFetchedId(context);
+                }
+
+                @Override
+                public void setNewestFetchedId(Context context, long id) {
+                    SimpleTweetsPrefs.setNewestLikedFetchedId(context, id);
+                }
+            };
         } else {
             throw new RuntimeException("Impossible pref field: " + mNewestFetchedIdFieldInPrefs);
         }

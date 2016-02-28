@@ -12,6 +12,7 @@ public class SimpleTweetsPrefs {
     public static final String PREF_NEWEST_MENTIONS_FETCHED_ID = "newest_mentions_fetched_id";
     public static final String PREF_NEWEST_USER_TIMELINE_FETCHED_ID =
             "newest_user_timeline_fetched_id";
+    public static final String PREF_NEWEST_LIKED_FETCHED_ID = "newest_liked_fetched_id";
 
     public static User getUser(Context context) {
         String userJson = PreferenceManager.getDefaultSharedPreferences(context)
@@ -64,6 +65,18 @@ public class SimpleTweetsPrefs {
         PreferenceManager.getDefaultSharedPreferences(context)
                 .edit()
                 .putLong(PREF_NEWEST_USER_TIMELINE_FETCHED_ID, id)
+                .apply();
+    }
+
+    public static long getNewestLikedFetchedId(Context context) {
+        return PreferenceManager.getDefaultSharedPreferences(context)
+                .getLong(PREF_NEWEST_LIKED_FETCHED_ID, 0);
+    }
+
+    public static void setNewestLikedFetchedId(Context context, long id) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+                .edit()
+                .putLong(PREF_NEWEST_LIKED_FETCHED_ID, id)
                 .apply();
     }
 }
