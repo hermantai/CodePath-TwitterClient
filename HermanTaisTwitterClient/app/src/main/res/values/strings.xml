@@ -9,4 +9,5 @@
     <string name="title_activity_tweet_detail">Tweet</string>
     <string name="reply">Tweet</string>
     <string name="show_more">Show More</string>
+    <string name="title_activity_followers">Followers</string>
 </resources>

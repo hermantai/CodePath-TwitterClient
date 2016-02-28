@@ -7,6 +7,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -17,6 +18,7 @@ import com.codepath.apps.mysimpletweets.timeline.LikedTimelineFragment;
 import com.codepath.apps.mysimpletweets.timeline.SimpleSmartFragmentStatePagerAdapter;
 import com.codepath.apps.mysimpletweets.timeline.UserMediaTimelineFragment;
 import com.codepath.apps.mysimpletweets.timeline.UserTimelineFragment;
+import com.codepath.apps.mysimpletweets.users.FollowersActivity;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -54,7 +56,16 @@ public class ProfileActivity extends AppCompatActivity {
 
         mTvUserProfileName.setText(mUser.getName());
         mUserProfileTagline.setText(mUser.getDescription());
+
         mTvUserProfileFollowersCount.setText(mUser.getFollowersCount() + " Followers");
+        mTvUserProfileFollowersCount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = FollowersActivity.newIntent(ProfileActivity.this);
+                startActivity(i);
+            }
+        });
+
         mTvUserProfileFollowingCount.setText(mUser.getFollowingCount() + " Following");
 
         getSupportActionBar().setTitle("@" + mUser.getScreenName());

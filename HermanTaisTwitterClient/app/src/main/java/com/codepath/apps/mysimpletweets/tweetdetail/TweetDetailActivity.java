@@ -4,12 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.Toolbar;
 
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.models.TweetInterface;
-import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
 
 public class TweetDetailActivity extends SingleFragmentActivity {
     private static final String EXTRA_TWEET = "com.codepath.apps.mysimpletweets.tweet";
@@ -31,19 +29,17 @@ public class TweetDetailActivity extends SingleFragmentActivity {
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.tbActivityFragment);
-        setSupportActionBar(toolbar);
-    }
-
-    @Override
     protected Fragment createFragment() {
         return TweetDetailFragment.newInstance(
                 getIntent().getIntExtra(EXTRA_TWEET_POS, 0),
                 (Tweet) getIntent().getParcelableExtra(EXTRA_TWEET),
                 getIntent().getStringExtra(EXTRA_NEWEST_ID_FIELD_IN_PREFS));
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setTitle(getString(R.string.title_activity_tweet_detail));
     }
 
     public static Tweet getUpdatedTweet(Intent data) {

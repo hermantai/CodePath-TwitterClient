@@ -28,11 +28,7 @@
             android:value="1"/>
         <meta-data
             android:name="AA_MODELS"
-            android:value="com.codepath.apps.mysimpletweets.models.LikedTweet,\
-                com.codepath.apps.mysimpletweets.models.UserTweet,\
-                com.codepath.apps.mysimpletweets.models.Mention,\
-                com.codepath.apps.mysimpletweets.models.Tweet"
-            />
+            android:value="com.codepath.apps.mysimpletweets.models.LikedTweet,\                 com.codepath.apps.mysimpletweets.models.UserTweet,\                 com.codepath.apps.mysimpletweets.models.Mention,\                 com.codepath.apps.mysimpletweets.models.Tweet"/>
         <meta-data
             android:name="AA_SERIALIZERS"
             android:value="com.codepath.apps.mysimpletweets.repo.ExtendedEntitiesTypeSerializer, com.codepath.apps.mysimpletweets.repo.UserTypeSerializer"/>
@@ -72,6 +68,11 @@
             android:theme="@style/FullScreenVideoTheme">
         </activity>
         <activity android:name=".profile.ProfileActivity">
+        </activity>
+        <activity
+            android:name=".users.FollowersActivity"
+            android:label="@string/title_activity_followers"
+            android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>
 
