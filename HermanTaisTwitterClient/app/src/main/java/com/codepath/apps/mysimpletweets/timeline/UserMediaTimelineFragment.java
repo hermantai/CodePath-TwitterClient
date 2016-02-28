@@ -1,5 +1,6 @@
 package com.codepath.apps.mysimpletweets.timeline;
 
+import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -28,17 +29,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserMediaTimelineFragment extends TimelineFragment {
+    private static final String ARG_USER = "user";
+
     private User mUser;
 
-    public static UserMediaTimelineFragment newInstance() {
-        return new UserMediaTimelineFragment();
+    public static UserMediaTimelineFragment newInstance(User user) {
+        UserMediaTimelineFragment frag = new UserMediaTimelineFragment();
+        Bundle args = new Bundle();
+        args.putParcelable(ARG_USER, user);
+        frag.setArguments(args);
+
+        return frag;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mUser = SimpleTweetsPrefs.getUser(getActivity());
-    }
+        mUser = getArguments().getParcelable(ARG_USER);    }
 
     @Override
     protected void fetchNewerTweets() {
@@ -310,13 +317,13 @@ public class UserMediaTimelineFragment extends TimelineFragment {
     }
 
     class UserMediaAdapter extends TimelineFragment.TweetsAbstractAdapter<MediaViewHolder> {
-        public UserMediaAdapter(Context context) {
-            super(context);
+        public UserMediaAdapter(Activity activity) {
+            super(activity);
         }
 
         @Override
         public MediaViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(mContext).inflate(
+            View v = LayoutInflater.from(mActivity).inflate(
                     R.layout.item_media_tweet, parent, false);
             MediaViewHolder vh = new MediaViewHolder(v);
             return vh;
@@ -324,7 +331,7 @@ public class UserMediaTimelineFragment extends TimelineFragment {
 
         @Override
         public void onBindViewHolder(MediaViewHolder holder, int position) {
-            holder.bindTweet(mContext, getItem(position));
+            holder.bindTweet(mActivity, getItem(position));
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.codepath.apps.mysimpletweets.timeline;
 
-import android.content.Context;
+import android.app.Activity;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -15,6 +16,7 @@ import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.helpers.StringUtil;
 import com.codepath.apps.mysimpletweets.models.Media;
 import com.codepath.apps.mysimpletweets.models.TweetInterface;
+import com.codepath.apps.mysimpletweets.profile.ProfileActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -94,7 +96,7 @@ public class TweetViewHolder extends RecyclerView.ViewHolder implements View
         mTvItemTweetBody.setOnClickListener(this);
     }
 
-    public void bindTweet(Context context, int tweetPosition, TweetInterface tweet) {
+    public void bindTweet(final Activity activity, int tweetPosition, TweetInterface tweet) {
         mTweet = tweet;
         mTweetPos = tweetPosition;
 
@@ -123,9 +125,16 @@ public class TweetViewHolder extends RecyclerView.ViewHolder implements View
                 StringUtil.getRelativeTimeSpanString(tweet.getCreatedAt()));
 
         mIvItemTweetProfileImage.setImageResource(android.R.color.transparent);
-        Glide.with(context)
+        Glide.with(activity)
                 .load(tweet.getUser().getProfileImageUrl())
                 .into(mIvItemTweetProfileImage);
+        mIvItemTweetProfileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = ProfileActivity.newIntent(activity, mTweet.getUser());
+                activity.startActivity(i);
+            }
+        });
 
         mTvItemTweetCreatedAt.setOnClickListener(mTvItemTweetCreatedAtOnClickListener1);
 

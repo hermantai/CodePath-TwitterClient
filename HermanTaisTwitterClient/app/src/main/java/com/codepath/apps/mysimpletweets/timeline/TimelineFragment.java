@@ -224,11 +224,11 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
     public abstract class TweetsAbstractAdapter<VH extends RecyclerView.ViewHolder>
             extends RecyclerView.Adapter<VH> {
         private Cursor mCursor;
-        protected Context mContext;
+        protected Activity mActivity;
 
-        public TweetsAbstractAdapter(Context context) {
+        public TweetsAbstractAdapter(Activity activity) {
             mCursor = TimelineFragment.this.fetchTweetsCursor();
-            mContext = context;
+            mActivity = activity;
         }
 
         @Override
@@ -298,13 +298,13 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
     }
 
     class TweetsAdapter extends TweetsAbstractAdapter<TweetViewHolder> {
-        public TweetsAdapter(Context context) {
-            super(context);
+        public TweetsAdapter(Activity activity) {
+            super(activity);
         }
 
         @Override
         public TweetViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(mContext).inflate(R.layout.item_tweet, parent, false);
+            View v = LayoutInflater.from(mActivity).inflate(R.layout.item_tweet, parent, false);
 
             TweetViewHolder vh = new TweetViewHolder(
                     v,
@@ -325,7 +325,7 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
                         @Override
                         public void onClick(int position, TweetInterface tweet) {
                             Intent i = TweetDetailActivity.newIntent(
-                                    mContext, position, tweet, getNewestFetchedIdFieldInPrefs());
+                                    mActivity, position, tweet, getNewestFetchedIdFieldInPrefs());
                             startActivityForResult(i, REQUEST_DETAIL);
                         }
                     });
@@ -335,7 +335,7 @@ public abstract class TimelineFragment extends Fragment implements NetworkChange
         @Override
         public void onBindViewHolder(TweetViewHolder holder, int position) {
             TweetInterface tweet = getItem(position);;
-            holder.bindTweet(mContext, position, tweet);
+            holder.bindTweet(mActivity, position, tweet);
         }
     }
 }

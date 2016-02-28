@@ -61,9 +61,9 @@ public class ProfileActivity extends AppCompatActivity {
         FragmentManager fm = getSupportFragmentManager();
         SimpleSmartFragmentStatePagerAdapter pagerAdapter =
                 new SimpleSmartFragmentStatePagerAdapter(fm)
-                        .addFragment(UserTimelineFragment.newInstance(), "Tweets")
-                        .addFragment(UserMediaTimelineFragment.newInstance(), "Media")
-                        .addFragment(UserTimelineFragment.newInstance(), "Likes");
+                        .addFragment(UserTimelineFragment.newInstance(mUser), "Tweets")
+                        .addFragment(UserMediaTimelineFragment.newInstance(mUser), "Media")
+                        .addFragment(UserTimelineFragment.newInstance(mUser), "Likes");
 
         mVpUserProfile.setAdapter(pagerAdapter);
         mTlUserProfile.setupWithViewPager(mVpUserProfile);

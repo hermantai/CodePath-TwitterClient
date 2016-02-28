@@ -24,16 +24,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserTimelineFragment extends TimelineFragment {
+    private static final String ARG_USER = "user";
+
     private User mUser;
 
-    public static UserTimelineFragment newInstance() {
-        return new UserTimelineFragment();
+    public static UserTimelineFragment newInstance(User user) {
+        UserTimelineFragment frag = new UserTimelineFragment();
+        Bundle args = new Bundle();
+        args.putParcelable(ARG_USER, user);
+        frag.setArguments(args);
+
+        return frag;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mUser = SimpleTweetsPrefs.getUser(getActivity());
+        mUser = getArguments().getParcelable(ARG_USER);
     }
 
     @Override
