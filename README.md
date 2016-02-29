@@ -49,7 +49,7 @@ The following **additional** features are implemented:
 Here's a walkthrough of implemented user stories:
 
 <img src='simple-tweets-overall.gif' title='overall' width='' alt='overall' />
-<p>This one below has the SearchView behavior corrected (i.e. close immediately goes back to the Timeline activity unless you have searched one):</p>
+<p>This one below has the SearchView behavior corrected (i.e. close immediately goes back to the Timeline activity unless you have searched at least once):</p>
 <img src='simple-tweets-search.gif' title='search' width='' alt='search' />
 <br />
 <img src='simple-tweets-like-retweet-reply.gif' title='like retweet reply search' width='' alt='like retweet reply search' />
