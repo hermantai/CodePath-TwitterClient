@@ -10,7 +10,7 @@ import com.codepath.apps.mysimpletweets.models.Message;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.tweetdetail.SingleFragmentActivity;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class MessagesActivity extends SingleFragmentActivity {
     private static final String EXTRA_USER = "com.codepath.apps.mysimpletweets.messages" +
@@ -18,28 +18,29 @@ public class MessagesActivity extends SingleFragmentActivity {
     private static final String EXTRA_MESSAGES = "com.codepath.apps.mysimpletweets.messages" +
             ".MessagesActivity.messages";
 
-    private User mUser;
-
-    public static Intent newIntent(Context context, User user, List<Message> messages) {
+    public static Intent newIntent(Context context, User user, ArrayList<Message> messages) {
         Intent i = new Intent(context, MessagesActivity.class);
         i.putExtra(EXTRA_USER, user);
+        i.putParcelableArrayListExtra(EXTRA_MESSAGES, messages);
         return i;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mUser = getIntent().getParcelableExtra(EXTRA_USER);
+        User user = getIntent().getParcelableExtra(EXTRA_USER);
         setTitle(Html.fromHtml(
-                String.format("<b>%s</b>", mUser.getName())
+                String.format("<b>%s</b>", user.getName())
         ));
     }
 
     @Override
     protected Fragment createFragment() {
+        User user = getIntent().getParcelableExtra(EXTRA_USER);
+        ArrayList<Message> messages = getIntent().getParcelableArrayListExtra(EXTRA_MESSAGES);
         return MessagesFragment.newInstance(
-                mUser,
-                null
+                user,
+                messages
         );
     }
 }

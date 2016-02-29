@@ -350,7 +350,7 @@ public class MessageRecipientsFragment extends Fragment {
                     Intent i = MessagesActivity.newIntent(
                             mActivity,
                             messageRecipient.getUser(),
-                            messageRecipient.getAllMessages());
+                            new ArrayList<Message>(messageRecipient.getAllMessages()));
                     startActivity(i);
                 }
             });

@@ -6,21 +6,31 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.models.Message;
 import com.codepath.apps.mysimpletweets.models.User;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 
 public class MessagesFragment extends Fragment {
+    private static final SimpleDateFormat sDateFormat = new SimpleDateFormat(
+            "yyyy/MMM/dd h:mm a");
+
     @Bind(R.id.rvMessages) RecyclerView mRvMessages;
     private MessagesAdapter mAdapter;
 
@@ -29,9 +39,10 @@ public class MessagesFragment extends Fragment {
 
     private User mUser;
 
-    public static MessagesFragment newInstance(User user, List<Message> messages) {
+    public static MessagesFragment newInstance(User user, ArrayList<Message> messages) {
         Bundle args = new Bundle();
         args.putParcelable(ARG_USER, user);
+        args.putParcelableArrayList(ARG_MESSAGE_RECIPIENT, messages);
 
         MessagesFragment fragment = new MessagesFragment();
         fragment.setArguments(args);
@@ -43,7 +54,8 @@ public class MessagesFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mUser = getArguments().getParcelable(ARG_USER);
-        List<Message> messages = new ArrayList<>();
+        List<Message> messages = getArguments().getParcelableArrayList(ARG_MESSAGE_RECIPIENT);
+        Collections.reverse(messages);
         mAdapter = new MessagesAdapter();
         mAdapter.addAll(messages);
     }
@@ -66,26 +78,52 @@ public class MessagesFragment extends Fragment {
         return v;
     }
 
-    class MessageViewHolder extends RecyclerView.ViewHolder {
-        private Activity mActivity;
+    abstract class MessageViewHolder extends RecyclerView.ViewHolder {
+        protected Activity mActivity;
 
         public MessageViewHolder(View itemView, Activity activity) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
-
             mActivity = activity;
         }
 
-        private void bindMessage(Message message) {
-            // TODO
-//            Glide.with(mActivity)
-//                    .load(mUser.getProfileImageUrl())
-//                    .into(mIvMessageRecipientUserProfileImage);
-//            mTvMessageRecipientUserName.setText(mUser.getName());
-//            mTvMessageRecipientMessage.setText(message.getText());
-//            mTvMessageRecipientCreatedAt.setText(
-//                    StringUtil.getRelativeTimeSpanString(
-//                            message.getCreatedAt()));
+        protected abstract void bindMessage(Message message);
+    }
+
+    class ReceivedMessageViewHolder extends MessageViewHolder {
+        @Bind(R.id.ivReceivedMessageSenderUserProfileImage)
+        ImageView mIvReceivedMessageSenderUserProfileImage;
+
+        @Bind(R.id.tvReceivedMessageReceivedMessage) TextView mTvReceivedMessageReceivedMessage;
+        @Bind(R.id.tvReceivedMessageCreatedAt) TextView mTvReceivedMessageCreatedAt;
+
+        public ReceivedMessageViewHolder(View itemView, Activity activity) {
+            super(itemView, activity);
+            ButterKnife.bind(this, itemView);
+        }
+
+        @Override
+        protected void bindMessage(Message message) {
+            Glide.with(mActivity)
+                    .load(message.getSender().getProfileImageUrl())
+                    .into(mIvReceivedMessageSenderUserProfileImage);
+            mTvReceivedMessageReceivedMessage.setText(message.getText());
+            mTvReceivedMessageCreatedAt.setText(sDateFormat.format(message.getCreatedAt()));
+        }
+    }
+
+    class SentMessageViewHolder extends MessageViewHolder {
+        @Bind(R.id.tvSentMessageMessage) TextView mTvSentMessageMessage;
+        @Bind(R.id.tvSentMessageCreatedAt) TextView mTvSentMessageCreatedAt;
+
+        public SentMessageViewHolder(View itemView, Activity activity) {
+            super(itemView, activity);
+            ButterKnife.bind(this, itemView);
+        }
+
+        @Override
+        protected void bindMessage(Message message) {
+            mTvSentMessageMessage.setText(message.getText());
+            mTvSentMessageCreatedAt.setText(sDateFormat.format(message.getCreatedAt()));
         }
     }
 
@@ -94,10 +132,35 @@ public class MessagesFragment extends Fragment {
 
         @Override
         public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(getActivity()).inflate(
-                    R.layout.item_message_recipient, parent, false);
+            MessageViewHolder vh = null;
+            switch (viewType) {
+                case 0:
+                    View v = LayoutInflater.from(getActivity()).inflate(
+                            R.layout.item_received_message, parent, false);
+                    vh = new ReceivedMessageViewHolder(v, getActivity());
+                    break;
+                case 1:
+                    View v2 = LayoutInflater.from(getActivity()).inflate(
+                            R.layout.item_sent_message, parent, false);
+                    vh = new SentMessageViewHolder(v2, getActivity());
+                    break;
+                default:
+                    throw new RuntimeException("Impossible view type: " + viewType);
+            }
 
-            return new MessageViewHolder(v, getActivity());
+            return vh;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            Message message = getItem(position);
+            Log.d(Common.INFO_TAG, "mUser is " + mUser);
+            Log.d(Common.INFO_TAG, "message is " + message);
+            if (message.getSender().getUid() == mUser.getUid()) {
+                return 0;
+            } else {
+                return 1;
+            }
         }
 
         @Override

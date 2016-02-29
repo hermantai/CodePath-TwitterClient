@@ -82,6 +82,19 @@ public class User implements Parcelable {
         return mFollowingCount;
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "mName='" + mName + '\'' +
+                ", mUid=" + mUid +
+                ", mScreenName='" + mScreenName + '\'' +
+                ", mProfileImageUrl='" + mProfileImageUrl + '\'' +
+                ", mDescription='" + mDescription + '\'' +
+                ", mFollowersCount=" + mFollowersCount +
+                ", mFollowingCount=" + mFollowingCount +
+                '}';
+    }
+
     public static User fromJson(JSONObject jsonObject) {
         Gson gson = Common.getGson();
         User user = gson.fromJson(jsonObject.toString(), User.class);
