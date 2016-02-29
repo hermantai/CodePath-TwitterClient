@@ -48,7 +48,9 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/link/to/your/gif/file.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+<img src='simple-tweets-overall.gif' title='overall' width='' alt='overall' />
+<img src='simple-tweets-like-retweet-reply.gif' title='like retweet reply search' width='' alt='like retweet reply search' />
+<img src='simple-tweets-messages.gif' title='direct messages' width='' alt='direct messages' />
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
@@ -58,8 +60,12 @@ Describe any challenges encountered while building the app.
 
 ## Open-source libraries used
 
+- [Active Android](https://github.com/pardom/ActiveAndroid/wiki/Getting-started) ActiveAndroid is an active record style ORM (object relational mapper).
 - [Android Async HTTP](https://github.com/loopj/android-async-http) - Simple asynchronous HTTP requests with JSON parsing
-- [Picasso](http://square.github.io/picasso/) - Image loading and caching library for Android
+- [Butter Knife](http://jakewharton.github.io/butterknife/) - Field and method binding for Android views
+- [Glide](https://github.com/bumptech/glide) - An image loading and caching library for Android focused on smooth scrolling
+- [Gson](https://github.com/google/gson) - A Java serialization library that can convert Java Objects into JSON and back.
+- [Android PagerSlidingTabStrip](https://github.com/astuetz/PagerSlidingTabStrip) - Interactive paging indicator widget, compatible with the ViewPager from the Android Support Library.  
 
 ## License
 

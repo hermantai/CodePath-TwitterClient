@@ -98,7 +98,7 @@ public class MessagesFragment extends Fragment {
                     mBtnMessagesSent.setEnabled(false);
                     final ProgressDialog progressDialog = SimpleProgressDialog.createProgressDialog(
                             getActivity());
-                    
+
                     mClient.sendMessage(
                             mUser.getScreenName(),
                             msg,
