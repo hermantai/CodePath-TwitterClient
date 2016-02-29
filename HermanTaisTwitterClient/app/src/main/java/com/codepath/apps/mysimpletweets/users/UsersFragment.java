@@ -1,6 +1,7 @@
 package com.codepath.apps.mysimpletweets.users;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -18,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.helpers.NetworkUtil;
 import com.codepath.apps.mysimpletweets.models.User;
+import com.codepath.apps.mysimpletweets.profile.ProfileActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,10 +84,17 @@ public class UsersFragment extends Fragment {
             mActivity = activity;
         }
 
-        private void bindUser(User user) {
+        private void bindUser(final User user) {
             Glide.with(mActivity)
                     .load(user.getProfileImageUrl())
                     .into(mIvItemUserProfileImage);
+            mIvItemUserProfileImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = ProfileActivity.newIntent(mActivity, user);
+                    mActivity.startActivity(i);
+                }
+            });
             mTvItemUserUserName.setText(user.getName());
             mTvItemUserUserScreenName.setText(user.getScreenName());
         }
