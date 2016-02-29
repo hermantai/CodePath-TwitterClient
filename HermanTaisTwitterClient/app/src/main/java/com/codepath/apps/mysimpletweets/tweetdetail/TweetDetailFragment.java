@@ -173,7 +173,18 @@ public class TweetDetailFragment extends Fragment {
                 }
             };
         } else {
-            throw new RuntimeException("Impossible pref field: " + mNewestFetchedIdFieldInPrefs);
+            Log.d(Common.INFO_TAG, "NewestFetchedIdProvider is not specified");
+            mNewestFetchedIdProvider = new TweetDetailFragment.NewestFetchedIdProvider() {
+                @Override
+                public long getNewestFetchedId(Context context) {
+                    return 0;
+                }
+
+                @Override
+                public void setNewestFetchedId(Context context, long id) {
+                    // do nothing
+                }
+            };
         }
     }
 
