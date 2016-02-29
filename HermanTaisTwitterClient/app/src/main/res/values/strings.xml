@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Simple Tweets</string>
     <string name="login_label">Connect To Twitter</string>
     <string name="title_activity_timeline">Home Timeline</string>
@@ -10,4 +9,5 @@
     <string name="reply">Tweet</string>
     <string name="show_more">Show More</string>
     <string name="title_activity_followers">Followers</string>
+    <string name="title_activity_friends">Following</string>
 </resources>

@@ -19,6 +19,7 @@ import com.codepath.apps.mysimpletweets.timeline.SimpleSmartFragmentStatePagerAd
 import com.codepath.apps.mysimpletweets.timeline.UserMediaTimelineFragment;
 import com.codepath.apps.mysimpletweets.timeline.UserTimelineFragment;
 import com.codepath.apps.mysimpletweets.users.FollowersActivity;
+import com.codepath.apps.mysimpletweets.users.FriendsActivity;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -67,6 +68,13 @@ public class ProfileActivity extends AppCompatActivity {
         });
 
         mTvUserProfileFollowingCount.setText(mUser.getFollowingCount() + " Following");
+        mTvUserProfileFollowingCount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = FriendsActivity.newIntent(ProfileActivity.this);
+                startActivity(i);
+            }
+        });
 
         getSupportActionBar().setTitle("@" + mUser.getScreenName());
 

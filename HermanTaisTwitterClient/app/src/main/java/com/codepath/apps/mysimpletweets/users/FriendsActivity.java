@@ -8,20 +8,20 @@ import android.support.v4.app.Fragment;
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.tweetdetail.SingleFragmentActivity;
 
-public class FollowersActivity extends SingleFragmentActivity {
+public class FriendsActivity extends SingleFragmentActivity {
     public static Intent newIntent(Context context) {
-        Intent i = new Intent(context, FollowersActivity.class);
+        Intent i = new Intent(context, FriendsActivity.class);
         return i;
     }
 
     @Override
     protected Fragment createFragment() {
-        return FollowersFragment.newInstance();
+        return FriendsFragment.newInstance();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle(getString(R.string.title_activity_followers));
+        setTitle(getString(R.string.title_activity_friends));
     }
 }

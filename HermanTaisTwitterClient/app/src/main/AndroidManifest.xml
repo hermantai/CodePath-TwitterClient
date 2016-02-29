@@ -74,6 +74,11 @@
             android:label="@string/title_activity_followers"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+        <activity
+            android:name=".users.FriendsActivity"
+            android:label="@string/title_activity_friends"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>
