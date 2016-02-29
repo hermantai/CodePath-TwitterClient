@@ -7,7 +7,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -109,6 +108,7 @@ public class MessagesFragment extends Fragment {
                                                       JSONObject response) {
                                     Message sentMessage = Message.fromJson(response);
                                     mAdapter.add(sentMessage);
+                                    mRvMessages.smoothScrollToPosition(mAdapter.getItemCount() - 1);
                                     mBtnMessagesSent.setEnabled(true);
                                     mEtMessagesMessage.setText("");
                                     progressDialog.dismiss();
@@ -146,6 +146,12 @@ public class MessagesFragment extends Fragment {
         });
 
         return v;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mRvMessages.scrollToPosition(mAdapter.getItemCount() - 1);
     }
 
     abstract class MessageViewHolder extends RecyclerView.ViewHolder {
@@ -224,8 +230,6 @@ public class MessagesFragment extends Fragment {
         @Override
         public int getItemViewType(int position) {
             Message message = getItem(position);
-            Log.d(Common.INFO_TAG, "mUser is " + mUser);
-            Log.d(Common.INFO_TAG, "message is " + message);
             if (message.getSender().getUid() == mUser.getUid()) {
                 return 0;
             } else {
