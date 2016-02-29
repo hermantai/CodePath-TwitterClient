@@ -93,12 +93,12 @@ public class MessagesFragment extends Fragment {
         mBtnMessagesSent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mBtnMessagesSent.setEnabled(false);
-                final ProgressDialog progressDialog = SimpleProgressDialog.createProgressDialog(
-                        getActivity());
-
                 String msg = mEtMessagesMessage.getText().toString().trim();
                 if (!msg.isEmpty()) {
+                    mBtnMessagesSent.setEnabled(false);
+                    final ProgressDialog progressDialog = SimpleProgressDialog.createProgressDialog(
+                            getActivity());
+                    
                     mClient.sendMessage(
                             mUser.getScreenName(),
                             msg,
