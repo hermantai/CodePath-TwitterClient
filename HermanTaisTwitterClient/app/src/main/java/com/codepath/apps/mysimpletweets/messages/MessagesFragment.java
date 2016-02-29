@@ -1,6 +1,7 @@
 package com.codepath.apps.mysimpletweets.messages;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,14 +11,24 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.codepath.apps.mysimpletweets.Common;
 import com.codepath.apps.mysimpletweets.R;
+import com.codepath.apps.mysimpletweets.SimpleTweetsApplication;
+import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.models.Message;
 import com.codepath.apps.mysimpletweets.models.User;
+import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
+import com.codepath.apps.mysimpletweets.widgets.SimpleProgressDialog;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+import org.apache.http.Header;
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,7 +43,11 @@ public class MessagesFragment extends Fragment {
             "yyyy/MMM/dd h:mm a");
 
     @Bind(R.id.rvMessages) RecyclerView mRvMessages;
+    @Bind(R.id.etMessagesMessage) EditText mEtMessagesMessage;
+    @Bind(R.id.btnMessagesSent) Button mBtnMessagesSent;
+
     private MessagesAdapter mAdapter;
+    private TwitterClient mClient;
 
     private static final String ARG_MESSAGE_RECIPIENT = "message_recipient";
     private static final String ARG_USER = "user";
@@ -52,6 +67,7 @@ public class MessagesFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mClient = SimpleTweetsApplication.getRestClient();
 
         mUser = getArguments().getParcelable(ARG_USER);
         List<Message> messages = getArguments().getParcelableArrayList(ARG_MESSAGE_RECIPIENT);
@@ -74,6 +90,60 @@ public class MessagesFragment extends Fragment {
 
         mRvMessages.setLayoutManager(llManager);
         mRvMessages.setAdapter(mAdapter);
+
+        mBtnMessagesSent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBtnMessagesSent.setEnabled(false);
+                final ProgressDialog progressDialog = SimpleProgressDialog.createProgressDialog(
+                        getActivity());
+
+                String msg = mEtMessagesMessage.getText().toString().trim();
+                if (!msg.isEmpty()) {
+                    mClient.sendMessage(
+                            mUser.getScreenName(),
+                            msg,
+                            new JsonHttpResponseHandler() {
+                                @Override
+                                public void onSuccess(int statusCode, Header[] headers,
+                                                      JSONObject response) {
+                                    Message sentMessage = Message.fromJson(response);
+                                    mAdapter.add(sentMessage);
+                                    mBtnMessagesSent.setEnabled(true);
+                                    mEtMessagesMessage.setText("");
+                                    progressDialog.dismiss();
+                                }
+
+                                @Override
+                                public void onFailure(int statusCode, Header[] headers, String
+                                        responseString, Throwable throwable) {
+                                    ErrorHandling.handleError(
+                                            getActivity(),
+                                            Common.INFO_TAG,
+                                            "Error sending message: "
+                                                    + throwable.getLocalizedMessage(),
+                                            throwable);
+                                    mBtnMessagesSent.setEnabled(true);
+                                    progressDialog.dismiss();
+                                }
+
+                                @Override
+                                public void onFailure(int statusCode, Header[] headers, Throwable
+                                        throwable, JSONObject errorResponse) {
+                                    ErrorHandling.handleError(
+                                            getActivity(),
+                                            Common.INFO_TAG,
+                                            "Error sending message: "
+                                                    + throwable.getLocalizedMessage(),
+                                            throwable);
+                                    mBtnMessagesSent.setEnabled(true);
+                                    progressDialog.dismiss();
+                                }
+                            }
+                    );
+                }
+            }
+        });
 
         return v;
     }
@@ -177,6 +247,11 @@ public class MessagesFragment extends Fragment {
             int oldLen = mMessages.size();
             mMessages.addAll(messages);
             notifyItemRangeInserted(oldLen, messages.size());
+        }
+
+        private void add(Message message) {
+            mMessages.add(message);
+            notifyItemInserted(mMessages.size());
         }
 
         private Message getItem(int position) {

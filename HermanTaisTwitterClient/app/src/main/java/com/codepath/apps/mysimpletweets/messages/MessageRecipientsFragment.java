@@ -313,6 +313,11 @@ public class MessageRecipientsFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        populate();
+    }
+
     class MessageRecipientViewHolder extends RecyclerView.ViewHolder {
         @Bind(R.id.ivMessageRecipientUserProfileImage)
         ImageView mIvMessageRecipientUserProfileImage;
@@ -351,7 +356,7 @@ public class MessageRecipientsFragment extends Fragment {
                             mActivity,
                             messageRecipient.getUser(),
                             new ArrayList<Message>(messageRecipient.getAllMessages()));
-                    startActivity(i);
+                    startActivityForResult(i, 0);
                 }
             });
         }
