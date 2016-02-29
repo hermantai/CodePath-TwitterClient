@@ -79,6 +79,11 @@
             android:label="@string/title_activity_friends"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+        <activity
+            android:name=".messages.MessageRecipientsActivity"
+            android:label="@string/title_activity_message_recipients"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>

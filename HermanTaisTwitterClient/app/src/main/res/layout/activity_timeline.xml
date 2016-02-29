@@ -36,6 +36,14 @@
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
                     android:src="@drawable/ic_profile"/>
+                <ImageView
+                    android:id="@+id/ivTimelineMessages"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:scaleType="fitCenter"
+                    android:layout_toLeftOf="@id/ivTimelineProfile"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ic_messages"/>
             </RelativeLayout>
         </android.support.v7.widget.Toolbar>
 

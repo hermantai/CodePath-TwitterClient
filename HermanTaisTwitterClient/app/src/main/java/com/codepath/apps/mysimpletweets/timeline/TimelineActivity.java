@@ -25,6 +25,7 @@ import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.SimpleTweetsApplication;
 import com.codepath.apps.mysimpletweets.helpers.ErrorHandling;
 import com.codepath.apps.mysimpletweets.helpers.NetworkUtil;
+import com.codepath.apps.mysimpletweets.messages.MessageRecipientsActivity;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.profile.ProfileActivity;
 import com.codepath.apps.mysimpletweets.repo.SimpleTweetsPrefs;
@@ -43,6 +44,7 @@ public class TimelineActivity extends AppCompatActivity {
     @Bind(R.id.tabStrip) PagerSlidingTabStrip mTabStrip;
 
     @Bind(R.id.ivTimelineProfile) ImageView mIvTimelineProfile;
+    @Bind(R.id.ivTimelineMessages) ImageView mIvTimelineMessages;
 
     protected TwitterClient mClient;
 
@@ -110,6 +112,13 @@ public class TimelineActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent i = ProfileActivity.newIntent(
                         TimelineActivity.this, SimpleTweetsPrefs.getUser(TimelineActivity.this));
+                startActivity(i);
+            }
+        });
+        mIvTimelineMessages.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = MessageRecipientsActivity.newIntent(TimelineActivity.this);
                 startActivity(i);
             }
         });
