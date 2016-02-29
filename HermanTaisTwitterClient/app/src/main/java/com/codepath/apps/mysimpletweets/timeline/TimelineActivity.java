@@ -45,6 +45,7 @@ public class TimelineActivity extends AppCompatActivity {
 
     @Bind(R.id.ivTimelineProfile) ImageView mIvTimelineProfile;
     @Bind(R.id.ivTimelineMessages) ImageView mIvTimelineMessages;
+    @Bind(R.id.ivTimelineSearch) ImageView mIvTimelineSearch;
 
     protected TwitterClient mClient;
 
@@ -119,6 +120,13 @@ public class TimelineActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent i = MessageRecipientsActivity.newIntent(TimelineActivity.this);
+                startActivity(i);
+            }
+        });
+        mIvTimelineSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = SearchActivity.newIntent(TimelineActivity.this);
                 startActivity(i);
             }
         });
