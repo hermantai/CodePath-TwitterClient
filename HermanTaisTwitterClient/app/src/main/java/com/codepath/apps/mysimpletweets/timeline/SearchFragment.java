@@ -41,6 +41,7 @@ public class SearchFragment extends Fragment {
     @Bind(R.id.rvSearchResult) RecyclerView mRvSearchResult;
     private TwitterClient mClient;
     private SearchResultsAdapter mAdapter;
+    private boolean mCloseSearchWhenSearchViewClosed = true;
 
     public static SearchFragment newInstance() {
         Bundle args = new Bundle();
@@ -80,6 +81,21 @@ public class SearchFragment extends Fragment {
         final MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
 
+        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                if (mCloseSearchWhenSearchViewClosed) {
+                    getActivity().finish();
+                }
+                return true;
+            }
+        });
+
         final SearchView.OnQueryTextListener queryTextListener = new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -99,15 +115,12 @@ public class SearchFragment extends Fragment {
         };
         searchView.setOnQueryTextListener(queryTextListener);
 
-        // TODO: the following does not seem to work, not sure how to request focus when the page
-        // just loaded
-        searchView.setFocusable(true);
-        searchView.requestFocus();
-        searchView.setIconified(false);
-        searchView.requestFocusFromTouch();
+        searchItem.expandActionView();
     }
 
     private void search(String query) {
+        mCloseSearchWhenSearchViewClosed = false;
+        
         final ProgressDialog progressDialog = SimpleProgressDialog.createProgressDialog(
                 getActivity());
         mClient.search(query, new JsonHttpResponseHandler() {

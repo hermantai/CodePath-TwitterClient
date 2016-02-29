@@ -2,7 +2,7 @@
 
 **Simple Tweets** is an android app that allows a user to view home and mentions timelines, view user profiles with user timelines, as well as compose and post a new tweet. The app utilizes [Twitter REST API](https://dev.twitter.com/rest/public).
 
-Time spent: **21** hours spent in total
+Time spent: **22** hours spent in total
 
 ## User Stories
 
@@ -49,7 +49,11 @@ The following **additional** features are implemented:
 Here's a walkthrough of implemented user stories:
 
 <img src='simple-tweets-overall.gif' title='overall' width='' alt='overall' />
+<p>This one below has the SearchView behavior corrected (i.e. close immediately goes back to the Timeline activity unless you have searched one):</p>
+<img src='simple-tweets-search.gif' title='search' width='' alt='search' />
+<br />
 <img src='simple-tweets-like-retweet-reply.gif' title='like retweet reply search' width='' alt='like retweet reply search' />
+<br />
 <img src='simple-tweets-messages.gif' title='direct messages' width='' alt='direct messages' />
 
 GIF created with [LiceCap](http://www.cockos.com/licecap/).
