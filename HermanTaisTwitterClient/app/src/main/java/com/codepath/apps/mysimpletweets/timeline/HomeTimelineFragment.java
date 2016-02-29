@@ -24,6 +24,7 @@ public class HomeTimelineFragment extends TimelineFragment {
      * Send an API request to get new tweets from the timeline json
      */
     protected void fetchNewerTweets() {
+        mSwipeContainer.setRefreshing(true);
         final Context context = getActivity();
         long since_id = SimpleTweetsPrefs.getNewestHomeFetchedId(context);
         if (since_id != 0) {
@@ -56,10 +57,13 @@ public class HomeTimelineFragment extends TimelineFragment {
                         // fetch and this fetch.. However, if the oldest tweet of the newTweets has
                         // ID newer than last fetched ID, we may have a gap, so we need to take
                         // care of this.
+                        long prevNewestFetchedId = SimpleTweetsPrefs
+                                .getNewestHomeFetchedId(context);
                         if (mTweetsAdapter.getItemCount() != 0
                                 && !newTweets.isEmpty()
                                 && newTweets.get(newTweets.size() - 1).getUid()
-                                > SimpleTweetsPrefs.getNewestHomeFetchedId(context)) {
+                                    > prevNewestFetchedId
+                                && prevNewestFetchedId != 0) {
                             newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
                         }
                         // The adapter takes care of de-dedup

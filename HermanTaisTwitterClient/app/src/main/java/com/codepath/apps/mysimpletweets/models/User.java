@@ -7,7 +7,11 @@ import com.codepath.apps.mysimpletweets.Common;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 /**
  * "user": {
@@ -50,12 +54,6 @@ public class User implements Parcelable {
     @SerializedName("friends_count")
     private int mFollowingCount;
 
-    public static User fromJson(JSONObject jsonObject) {
-        Gson gson = Common.getGson();
-        User user = gson.fromJson(jsonObject.toString(), User.class);
-        return user;
-    }
-
     public String getName() {
         return mName;
     }
@@ -82,6 +80,26 @@ public class User implements Parcelable {
 
     public int getFollowingCount() {
         return mFollowingCount;
+    }
+
+    public static User fromJson(JSONObject jsonObject) {
+        Gson gson = Common.getGson();
+        User user = gson.fromJson(jsonObject.toString(), User.class);
+        return user;
+    }
+
+    public static ArrayList<User> fromJsonArray(JSONArray jsonArray) {
+        ArrayList<User> users = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++ ) {
+            try {
+                users.add(User.fromJson(jsonArray.getJSONObject(i)));
+            } catch (JSONException e) {
+                e.printStackTrace();
+                continue;
+            }
+        }
+
+        return users;
     }
 
     public User() {

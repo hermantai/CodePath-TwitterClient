@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="@dimen/activity_horizontal_margin">
+    <ImageView
+        android:id="@+id/ivItemUserProfileImage"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:background="#4a94d0"
+        android:layout_marginRight="5dp"/>
+
+    <TextView
+        android:id="@+id/tvItemUserUserName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/ivItemUserProfileImage"
+        android:layout_toEndOf="@+id/ivItemUserProfileImage"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        tools:text="Billy"/>
+
+    <TextView
+        android:id="@+id/tvItemUserUserScreenName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvItemUserUserName"
+        android:layout_toRightOf="@+id/ivItemUserProfileImage"
+        android:layout_toEndOf="@+id/ivItemUserProfileImage"
+        tools:text="\@billy"/>
+</RelativeLayout>

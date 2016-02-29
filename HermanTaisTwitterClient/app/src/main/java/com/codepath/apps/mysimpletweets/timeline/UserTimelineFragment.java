@@ -79,10 +79,13 @@ public class UserTimelineFragment extends TimelineFragment {
                         // fetch and this fetch.. However, if the oldest tweet of the newTweets has
                         // ID newer than last fetched ID, we may have a gap, so we need to take
                         // care of this.
+                        long prevNewestFetchedId = SimpleTweetsPrefs
+                                .getNewestUserTimelineFetchedId(context);
                         if (mTweetsAdapter.getItemCount() != 0
                                 && !newTweets.isEmpty()
                                 && newTweets.get(newTweets.size() - 1).getUid()
-                                > SimpleTweetsPrefs.getNewestUserTimelineFetchedId(context)) {
+                                        > prevNewestFetchedId
+                                && prevNewestFetchedId != 0) {
                             newTweets.get(newTweets.size() - 1).setHasMoreBefore(true);
                         }
                         // The adapter takes care of de-dedup
