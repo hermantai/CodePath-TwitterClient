@@ -3,6 +3,7 @@ package com.codepath.apps.mysimpletweets.messages;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -26,6 +27,7 @@ import com.codepath.apps.mysimpletweets.helpers.LogUtil;
 import com.codepath.apps.mysimpletweets.helpers.NetworkUtil;
 import com.codepath.apps.mysimpletweets.helpers.StringUtil;
 import com.codepath.apps.mysimpletweets.models.Message;
+import com.codepath.apps.mysimpletweets.models.MessageRecipient;
 import com.codepath.apps.mysimpletweets.models.User;
 import com.codepath.apps.mysimpletweets.twitter.TwitterClient;
 import com.codepath.apps.mysimpletweets.widgets.SimpleProgressDialog;
@@ -292,6 +294,7 @@ public class MessageRecipientsFragment extends Fragment {
                 }
             });
 
+            mAdapter.clear();
             mAdapter.addAll(messageRecipients);
 
             mProgressDialog.dismiss();
@@ -332,7 +335,7 @@ public class MessageRecipientsFragment extends Fragment {
             mActivity = activity;
         }
 
-        private void bindMessageRecipient(MessageRecipient messageRecipient) {
+        private void bindMessageRecipient(final MessageRecipient messageRecipient) {
             Glide.with(mActivity)
                     .load(messageRecipient.getUser().getProfileImageUrl())
                     .into(mIvMessageRecipientUserProfileImage);
@@ -341,6 +344,16 @@ public class MessageRecipientsFragment extends Fragment {
             mTvMessageRecipientCreatedAt.setText(
                     StringUtil.getRelativeTimeSpanString(
                             messageRecipient.getMostRecentMessage().getCreatedAt()));
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = MessagesActivity.newIntent(
+                            mActivity,
+                            messageRecipient.getUser(),
+                            messageRecipient.getAllMessages());
+                    startActivity(i);
+                }
+            });
         }
     }
 
@@ -365,38 +378,19 @@ public class MessageRecipientsFragment extends Fragment {
             return mMessageRecipients.size();
         }
 
-        private void addAll(List<MessageRecipient> users){
+        private void addAll(List<MessageRecipient> messageRecipients){
             int oldLen = mMessageRecipients.size();
-            mMessageRecipients.addAll(users);
-            notifyItemRangeInserted(oldLen, users.size());
+            mMessageRecipients.addAll(messageRecipients);
+            notifyItemRangeInserted(oldLen, messageRecipients.size());
         }
 
         private MessageRecipient getItem(int position) {
             return mMessageRecipients.get(position);
         }
-    }
 
-    static class MessageRecipient {
-        private User mUser;
-        private Message mMostRecentMessage;
-        private List<Message> mAllMessages;
-
-        public MessageRecipient(User user, Message mostRecentMessage, List<Message> allMessages) {
-            mUser = user;
-            mMostRecentMessage = mostRecentMessage;
-            mAllMessages = allMessages;
-        }
-
-        public User getUser() {
-            return mUser;
-        }
-
-        public Message getMostRecentMessage() {
-            return mMostRecentMessage;
-        }
-
-        public List<Message> getAllMessages() {
-            return mAllMessages;
+        public void clear() {
+            mMessageRecipients.clear();
+            notifyDataSetChanged();
         }
     }
 }

@@ -84,6 +84,10 @@
             android:label="@string/title_activity_message_recipients"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
+        <activity
+            android:name=".messages.MessagesActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>
