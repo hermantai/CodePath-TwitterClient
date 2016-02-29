@@ -52,6 +52,8 @@ public class UserTimelineFragment extends TimelineFragment {
             // existing item and the new items we are fetching.
             since_id -= 1;
         }
+        // TODO: cannot differentiate between other users, so always fetch new tweets
+        since_id = 0;
 
         mClient.getUserTimeline(
                 mUser.getScreenName(),
